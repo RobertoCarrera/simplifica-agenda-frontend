@@ -13,15 +13,17 @@ import { Professional } from "../../services/booking-public.service";
         <img
           *ngIf="professional.avatar_url; else initials"
           [src]="professional.avatar_url"
-          [alt]="professional.name"
+          [alt]="professional.display_name"
         />
         <ng-template #initials>
-          <span class="initials">{{ getInitials(professional.name) }}</span>
+          <span class="initials">{{
+            getInitials(professional.display_name)
+          }}</span>
         </ng-template>
       </div>
 
       <div class="professional-info">
-        <h3 class="professional-name">{{ professional.name }}</h3>
+        <h3 class="professional-name">{{ professional.display_name }}</h3>
 
         <div class="professional-services" *ngIf="serviceNames?.length">
           <span class="service-tag" *ngFor="let name of serviceNames">

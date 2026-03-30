@@ -25,17 +25,19 @@ import { forkJoin } from "rxjs";
             <img
               *ngIf="professional()?.avatar_url; else initials"
               [src]="professional()?.avatar_url"
-              [alt]="professional()?.name"
+              [alt]="professional()?.display_name"
             />
             <ng-template #initials>
               <span class="initials">{{
-                getInitials(professional()?.name || "")
+                getInitials(professional()?.display_name || "")
               }}</span>
             </ng-template>
           </div>
 
           <div class="prof-details">
-            <h1 class="professional-name">{{ professional()?.name }}</h1>
+            <h1 class="professional-name">
+              {{ professional()?.display_name }}
+            </h1>
             <p class="professional-title" *ngIf="professional()?.title">
               {{ professional()?.title }}
             </p>
@@ -281,44 +283,16 @@ export class ProfessionalDetailComponent implements OnInit {
   }
 
   private loadServicesForProfessional() {
-    // TODO: Replace with actual BFF call when endpoint is available
-    // For now, return stub services that a professional might offer
-    // This would be fetched from the BFF or cached catalog
-    this.services.set([
-      {
-        id: "s1",
-        name: "Consulta General",
-        price: 50,
-        duration: 30,
-        professional_ids: [this.professional()?.id || ""],
-      },
-      {
-        id: "s2",
-        name: "Limpieza Dental",
-        price: 80,
-        duration: 45,
-        professional_ids: [this.professional()?.id || ""],
-      },
-      {
-        id: "s3",
-        name: "Revisión Completa",
-        price: 100,
-        duration: 60,
-        professional_ids: [this.professional()?.id || ""],
-      },
-    ]);
+    // This method is now a fallback - BFF returns services with /professionals/:id
+    // Clear services since we'll use the ones from BFF response
+    this.services.set([]);
   }
 
   servicesForProfessional(): Service[] {
     const prof = this.professional();
-    const services = this.services();
     if (!prof) return [];
-    // If services already filtered from BFF response, return as-is
-    if (prof.services && prof.services.length > 0) {
-      return prof.services;
-    }
-    // Otherwise filter by professional_ids
-    return services.filter((s) => s.professional_ids?.includes(prof.id));
+    // BFF returns services with the professional response
+    return prof.services || [];
   }
 
   getInitials(name: string): string {
