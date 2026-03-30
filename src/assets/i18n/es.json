@@ -1,0 +1,132 @@
+{
+  "app": {
+    "title": "Simplifica CRM",
+    "loading": "Cargando..."
+  },
+  "nav": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "professionals": "Profesionales",
+    "book": "Reservar"
+  },
+  "common": {
+    "back": "Volver",
+    "loading": "Cargando...",
+    "backToServices": "Volver a servicios"
+  },
+  "catalog": {
+    "title": "Nuestros Servicios",
+    "subtitle": "Elige el servicio que necesitas",
+    "filters": "Filtrar",
+    "sort": "Ordenar",
+    "price": "Precio",
+    "duration": "Duración",
+    "minutes": "min",
+    "noServices": "No hay servicios disponibles",
+    "professional": "Profesional",
+    "viewDetails": "Ver detalles",
+    "bookNow": "Reservar",
+    "viewProfile": "Ver perfil",
+    "bookWith": "Reservar con"
+  },
+  "service": {
+    "availableWith": "Disponible con",
+    "bookWith": "Reservar con",
+    "bookNow": "Reservar ahora"
+  },
+  "professional": {
+    "services": "Servicios",
+    "bookAppointment": "Pedir cita"
+  },
+  "calendar": {
+    "previousWeek": "Semana anterior",
+    "nextWeek": "Siguiente semana",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "today": "Hoy",
+    "noSlots": "Sin horarios disponibles",
+    "selected": "Seleccionado",
+    "clearSelection": "Limpiar selección",
+    "selectSlot": "Selecciona un horario"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o ha sido movida.",
+    "goHome": "Volver al inicio",
+    "viewServices": "Ver servicios"
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados.",
+    "tagline": "Gestión de citas simplificada",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "contact": "Contacto"
+  },
+  "professionals": {
+    "title": "Nuestros Profesionales",
+    "subtitle": "Conoce a nuestro equipo",
+    "services": "Servicios",
+    "noProfessionals": "No hay profesionales disponibles"
+  },
+  "booking": {
+    "title": "Reservar Cita",
+    "step1": "Tus Datos",
+    "step2": "Método de Reserva",
+    "step3": "Seleccionar Hora",
+    "personal": {
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre completo",
+      "email": "Email",
+      "emailPlaceholder": "tu@email.com",
+      "phone": "Teléfono",
+      "phonePlaceholder": "612 345 678",
+      "professional": "Profesional (opcional)",
+      "selectProfessional": "Seleccionar profesional",
+      "anyProfessional": "Cualquier profesional"
+    },
+    "method": {
+      "title": "¿Cómo quieres reservar?",
+      "firstAvailable": "Primera sesión disponible",
+      "firstAvailableDesc": "Te asignamos el primer horario libre",
+      "chooseTime": "Elegir día y hora",
+      "chooseTimeDesc": "Navega por el calendario y elige tú mismo"
+    },
+    "calendar": {
+      "title": "Selecciona un horario",
+      "week": "Semana",
+      "today": "Hoy",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "available": "Disponible",
+      "occupied": "Ocupado",
+      "noSlots": "No hay horarios disponibles",
+      "selectSlot": "Selecciona un horario"
+    },
+    "success": {
+      "title": "¡Cita Reservada!",
+      "message": "Tu cita ha sido confirmada",
+      "bookingId": "Número de reserva",
+      "service": "Servicio",
+      "professional": "Profesional",
+      "dateTime": "Fecha y hora",
+      "addToCalendar": "Añadir a Google Calendar",
+      "backToHome": "Volver al inicio"
+    },
+    "continue": "Continuar",
+    "back": "Atrás",
+    "confirm": "Confirmar Reserva",
+    "errors": {
+      "nameRequired": "El nombre es obligatorio",
+      "emailRequired": "El email es obligatorio",
+      "emailInvalid": "Introduce un email válido",
+      "phoneRequired": "El teléfono es obligatorio",
+      "phoneInvalid": "Introduce un teléfono válido"
+    }
+  },
+  "errors": {
+    "companyNotFound": "Empresa no encontrada",
+    "bookingFailed": "Error al crear la reserva",
+    "networkError": "Error de conexión",
+    "tryAgain": "Intentar de nuevo"
+  }
+}

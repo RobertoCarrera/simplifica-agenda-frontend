@@ -1,0 +1,222 @@
+import { Injectable, inject } from "@angular/core";
+import { HttpClient, HttpParams } from "@angular/common/http";
+import { Observable, catchError, throwError } from "rxjs";
+import { map } from "rxjs/operators";
+import { environment } from "../../environments/environment";
+
+// ============================================================================
+// Interfaces
+// ============================================================================
+
+export interface Company {
+  id: string;
+  name: string;
+  logo_url?: string;
+  primary_color?: string;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  professional_ids: string[];
+  description?: string;
+}
+
+export interface Professional {
+  id: string;
+  name: string;
+  title?: string;
+  avatar_url?: string;
+}
+
+export interface CompanyServicesResponse {
+  company: Company;
+  services: Service[];
+  professionals: Professional[];
+}
+
+export interface BusyPeriod {
+  start: string;
+  end: string;
+}
+
+export interface AvailabilityResponse {
+  busy_periods: BusyPeriod[];
+}
+
+export interface CreateBookingPayload {
+  slug: string;
+  service_id: string;
+  professional_id: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  datetime: string;
+  turnstile_token: string;
+}
+
+export interface BookingResponse {
+  success: boolean;
+  booking_id?: string;
+  message?: string;
+}
+
+// ============================================================================
+// Service
+// ============================================================================
+
+@Injectable({ providedIn: "root" })
+export class BookingPublicService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = environment.bffBaseUrl;
+
+  /**
+   * Fetch company services and professionals by slug
+   * GET /services?slug={slug}
+   */
+  getServices(slug: string): Observable<CompanyServicesResponse> {
+    const params = new HttpParams().set("slug", slug);
+    return this.http
+      .get<CompanyServicesResponse>(`${this.baseUrl}/services`, { params })
+      .pipe(
+        catchError((err) => {
+          console.error("Error fetching services:", err);
+          return throwError(
+            () => new Error(err.message || "Error fetching services"),
+          );
+        }),
+      );
+  }
+
+  /**
+   * Fetch availability for a professional in a given week
+   * GET /availability?slug={slug}&week_start={date}&professional_id={id}
+   */
+  getAvailability(
+    slug: string,
+    weekStart: string,
+    professionalId?: string,
+  ): Observable<AvailabilityResponse> {
+    let params = new HttpParams()
+      .set("slug", slug)
+      .set("week_start", weekStart);
+
+    if (professionalId) {
+      params = params.set("professional_id", professionalId);
+    }
+
+    return this.http
+      .get<AvailabilityResponse>(`${this.baseUrl}/availability`, { params })
+      .pipe(
+        catchError((err) => {
+          console.error("Error fetching availability:", err);
+          return throwError(
+            () => new Error(err.message || "Error fetching availability"),
+          );
+        }),
+      );
+  }
+
+  /**
+   * Create a new booking
+   * POST /create-booking
+   */
+  createBooking(payload: CreateBookingPayload): Observable<BookingResponse> {
+    return this.http
+      .post<BookingResponse>(`${this.baseUrl}/create-booking`, payload)
+      .pipe(
+        catchError((err) => {
+          console.error("Error creating booking:", err);
+          return throwError(
+            () => new Error(err.message || "Error creating booking"),
+          );
+        }),
+      );
+  }
+
+  /**
+   * Fetch a single service by ID
+   * GET /service/{id} - stub, needs BFF endpoint
+   * Currently returns mock data - will be connected when BFF endpoint is available
+   */
+  getService(id: string): Observable<Service> {
+    // TODO: Replace with actual BFF call when endpoint is available
+    // return this.http.get<Service>(`${this.baseUrl}/service/${id}`);
+
+    // Stub implementation - returns mock for now
+    return new Observable((subscriber) => {
+      console.warn(
+        "getService: Using stub - BFF endpoint /service/{id} not implemented yet",
+      );
+      // Return mock service that matches the expected structure
+      subscriber.next({
+        id: id,
+        name: "Consulta General",
+        price: 50,
+        duration: 30,
+        professional_ids: ["prof-1", "prof-2"],
+      });
+      subscriber.complete();
+    });
+  }
+
+  /**
+   * Fetch a single professional by ID
+   * GET /professional/{id} - stub, needs BFF endpoint
+   * Currently returns mock data - will be connected when BFF endpoint is available
+   */
+  getProfessional(id: string): Observable<Professional> {
+    // TODO: Replace with actual BFF call when endpoint is available
+    // return this.http.get<Professional>(`${this.baseUrl}/professional/${id}`);
+
+    // Stub implementation - returns mock for now
+    return new Observable((subscriber) => {
+      console.warn(
+        "getProfessional: Using stub - BFF endpoint /professional/{id} not implemented yet",
+      );
+      subscriber.next({
+        id: id,
+        name: "Dr. Juan García",
+        avatar_url: undefined,
+      });
+      subscriber.complete();
+    });
+  }
+
+  /**
+   * Fetch all services (cached from initial load or fresh)
+   * This is used when we need to filter services by professional
+   */
+  getAllServices(): Observable<Service[]> {
+    // TODO: This should ideally use cached data from getServices call
+    // For now, returns empty - component should handle this case
+    return new Observable((subscriber) => {
+      subscriber.next([]);
+      subscriber.complete();
+    });
+  }
+
+  /**
+   * Fetch services for a specific professional
+   * Filters all services to return only those that include the professional_id
+   * This requires the slug to fetch the full catalog first
+   */
+  getServicesForProfessional(
+    slug: string,
+    professionalId: string,
+  ): Observable<Service[]> {
+    return this.getServices(slug).pipe(
+      map((response) =>
+        response.services.filter((s) =>
+          s.professional_ids.includes(professionalId),
+        ),
+      ),
+      catchError((err) => {
+        console.error("Error fetching services for professional:", err);
+        return throwError(() => new Error("Failed to load services"));
+      }),
+    );
+  }
+}

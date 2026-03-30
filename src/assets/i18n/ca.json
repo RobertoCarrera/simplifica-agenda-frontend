@@ -1,0 +1,132 @@
+{
+  "app": {
+    "title": "Simplifica CRM",
+    "loading": "Carregant..."
+  },
+  "nav": {
+    "home": "Inici",
+    "services": "Serveis",
+    "professionals": "Professionals",
+    "book": "Reservar"
+  },
+  "common": {
+    "back": "Tornar",
+    "loading": "Carregant...",
+    "backToServices": "Tornar a serveis"
+  },
+  "catalog": {
+    "title": "Els Nostres Serveis",
+    "subtitle": "Tria el servei que necessites",
+    "filters": "Filtrar",
+    "sort": "Ordenar",
+    "price": "Preu",
+    "duration": "Durada",
+    "minutes": "min",
+    "noServices": "No hi ha serveis disponibles",
+    "professional": "Professional",
+    "viewDetails": "Veure detalls",
+    "bookNow": "Reservar",
+    "viewProfile": "Veure perfil",
+    "bookWith": "Reservar amb"
+  },
+  "service": {
+    "availableWith": "Disponible amb",
+    "bookWith": "Reservar amb",
+    "bookNow": "Reservar ara"
+  },
+  "professional": {
+    "services": "Serveis",
+    "bookAppointment": "Demana cita"
+  },
+  "calendar": {
+    "previousWeek": "Setmana anterior",
+    "nextWeek": "Següent setmana",
+    "previous": "Anterior",
+    "next": "Següent",
+    "today": "Avui",
+    "noSlots": "Sense horaris disponibles",
+    "selected": "Seleccionat",
+    "clearSelection": "Netejar selecció",
+    "selectSlot": "Selecciona un horari"
+  },
+  "notFound": {
+    "title": "Pàgina no trobada",
+    "description": "La pàgina que busques no existeix o ha estat moguda.",
+    "goHome": "Tornar a l'inici",
+    "viewServices": "Veure serveis"
+  },
+  "footer": {
+    "rights": "Tots els drets reservats.",
+    "tagline": "Gestió de cites simplificada",
+    "privacy": "Privacitat",
+    "terms": "Termes",
+    "contact": "Contacte"
+  },
+  "professionals": {
+    "title": "Els Nostres Professionals",
+    "subtitle": "Conegueu el nostre equip",
+    "services": "Serveis",
+    "noProfessionals": "No hi ha professionals disponibles"
+  },
+  "booking": {
+    "title": "Reservar Cita",
+    "step1": "Les Teues Dades",
+    "step2": "Mètode de Reserva",
+    "step3": "Seleccionar Hora",
+    "personal": {
+      "name": "Nom",
+      "namePlaceholder": "El teu nom complet",
+      "email": "Email",
+      "emailPlaceholder": "el@teuemail.com",
+      "phone": "Telèfon",
+      "phonePlaceholder": "612 345 678",
+      "professional": "Professional (opcional)",
+      "selectProfessional": "Seleccionar professional",
+      "anyProfessional": "Qualsevol professional"
+    },
+    "method": {
+      "title": "Com vols reservar?",
+      "firstAvailable": "Primera sessió disponible",
+      "firstAvailableDesc": "T.assignem el primer horari lliure",
+      "chooseTime": "Triar dia i hora",
+      "chooseTimeDesc": "Navega pel calendari i tria tu mateix"
+    },
+    "calendar": {
+      "title": "Selecciona un horari",
+      "week": "Setmana",
+      "today": "Avui",
+      "previous": "Anterior",
+      "next": "Següent",
+      "available": "Disponible",
+      "occupied": "Ocupat",
+      "noSlots": "No hi ha horaris disponibles",
+      "selectSlot": "Selecciona un horari"
+    },
+    "success": {
+      "title": "¡Cita Reservada!",
+      "message": "La teua cita ha sigut confirmada",
+      "bookingId": "Número de reserva",
+      "service": "Servei",
+      "professional": "Professional",
+      "dateTime": "Data i hora",
+      "addToCalendar": "Afegir a Google Calendar",
+      "backToHome": "Tornar a l'inici"
+    },
+    "continue": "Continuar",
+    "back": "Enrere",
+    "confirm": "Confirmar Reserva",
+    "errors": {
+      "nameRequired": "El nom és obligatori",
+      "emailRequired": "L'email és obligatori",
+      "emailInvalid": "Introdueix un email vàlid",
+      "phoneRequired": "El telèfon és obligatori",
+      "phoneInvalid": "Introdueix un telèfon vàlid"
+    }
+  },
+  "errors": {
+    "companyNotFound": "Empresa no trobada",
+    "bookingFailed": "Error en crear la reserva",
+    "networkError": "Error de connexió",
+    "tryAgain": "Intentar de nou"
+  }
+}

@@ -1,0 +1,112 @@
+import { Component } from "@angular/core";
+import { RouterLink } from "@angular/router";
+import { TranslocoModule } from "@jsverse/transloco";
+
+@Component({
+  selector: "app-booking-success",
+  standalone: true,
+  imports: [RouterLink, TranslocoModule],
+  template: `
+    <div class="booking-success">
+      <div class="success-card">
+        <div class="success-icon">✓</div>
+        <h1>{{ "booking.success.title" | transloco }}</h1>
+        <p>{{ "booking.success.message" | transloco }}</p>
+
+        <div class="booking-details">
+          <div class="detail-row">
+            <span class="label"
+              >{{ "booking.success.bookingId" | transloco }}:</span
+            >
+            <span class="value">#ABC123</span>
+          </div>
+        </div>
+
+        <div class="success-actions">
+          <button class="btn btn-primary">
+            {{ "booking.success.addToCalendar" | transloco }}
+          </button>
+          <a routerLink="/" class="btn btn-secondary">
+            {{ "booking.success.backToHome" | transloco }}
+          </a>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [
+    `
+      .booking-success {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-4);
+        background: var(--color-surface);
+      }
+
+      .success-card {
+        background: var(--color-background);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8);
+        text-align: center;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .success-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--color-success);
+        color: white;
+        font-size: var(--font-size-3xl);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto var(--space-6);
+      }
+
+      h1 {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--space-2);
+      }
+
+      p {
+        color: var(--color-text-secondary);
+        margin-bottom: var(--space-6);
+      }
+
+      .booking-details {
+        background: var(--color-surface);
+        border-radius: var(--radius-md);
+        padding: var(--space-4);
+        margin-bottom: var(--space-6);
+
+        .detail-row {
+          display: flex;
+          justify-content: space-between;
+
+          .label {
+            color: var(--color-text-secondary);
+          }
+
+          .value {
+            font-weight: var(--font-weight-semibold);
+          }
+        }
+      }
+
+      .success-actions {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+
+        .btn {
+          width: 100%;
+        }
+      }
+    `,
+  ],
+})
+export class BookingSuccessComponent {}
