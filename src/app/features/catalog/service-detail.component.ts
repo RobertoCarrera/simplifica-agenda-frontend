@@ -25,7 +25,7 @@ import { forkJoin } from "rxjs";
           <h1 class="service-title">{{ service()?.name }}</h1>
           <div class="service-price-duration">
             <span class="price">{{ service()?.price }}€</span>
-            <span class="duration">{{ service()?.duration }} min</span>
+            <span class="duration">{{ service()?.duration_minutes }} min</span>
           </div>
         </div>
       </header>
@@ -299,12 +299,19 @@ export class ServiceDetailComponent implements OnInit {
   private loadService(id: string) {
     this.error.set(null);
 
-    // Try to fetch from BFF - uses stub for now
+    // Try to fetch from BFF
     this.bookingService.getService(id).subscribe({
       next: (service) => {
         this.service.set(service);
-        // Load professionals that offer this service
-        this.loadProfessionalsForService(service.professional_ids);
+        // If BFF returns professionals with the service, use them directly
+        // Otherwise fetch individually
+        if (service.professionals && service.professionals.length > 0) {
+          this.professionals.set(service.professionals);
+        } else if (service.professional_ids) {
+          this.loadProfessionalsForService(service.professional_ids);
+        } else {
+          this.professionals.set([]);
+        }
       },
       error: (err) => {
         console.error("Error loading service:", err);
@@ -314,9 +321,6 @@ export class ServiceDetailComponent implements OnInit {
   }
 
   private loadProfessionalsForService(professionalIds: string[]) {
-    // For now, we'll need to fetch all professionals
-    // In a real implementation, the BFF would return them with the service
-    // Using stub for each professional
     const professionalObservables = professionalIds.map((id) =>
       this.bookingService.getProfessional(id),
     );

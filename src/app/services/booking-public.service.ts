@@ -18,17 +18,22 @@ export interface Company {
 export interface Service {
   id: string;
   name: string;
-  price: number;
-  duration: number;
-  professional_ids: string[];
   description?: string;
+  duration_minutes: number;
+  price: number;
+  color?: string;
+  professionals?: Professional[];
+  company?: Company;
 }
 
 export interface Professional {
   id: string;
-  name: string;
+  display_name: string;
   title?: string;
+  bio?: string;
   avatar_url?: string;
+  services?: Service[];
+  company?: Company;
 }
 
 export interface CompanyServicesResponse {
@@ -138,51 +143,30 @@ export class BookingPublicService {
 
   /**
    * Fetch a single service by ID
-   * GET /service/{id} - stub, needs BFF endpoint
-   * Currently returns mock data - will be connected when BFF endpoint is available
+   * GET /services/:id from BFF
    */
   getService(id: string): Observable<Service> {
-    // TODO: Replace with actual BFF call when endpoint is available
-    // return this.http.get<Service>(`${this.baseUrl}/service/${id}`);
-
-    // Stub implementation - returns mock for now
-    return new Observable((subscriber) => {
-      console.warn(
-        "getService: Using stub - BFF endpoint /service/{id} not implemented yet",
-      );
-      // Return mock service that matches the expected structure
-      subscriber.next({
-        id: id,
-        name: "Consulta General",
-        price: 50,
-        duration: 30,
-        professional_ids: ["prof-1", "prof-2"],
-      });
-      subscriber.complete();
-    });
+    return this.http.get<Service>(`${this.baseUrl}/services/${id}`).pipe(
+      catchError((err) => {
+        console.error("Error fetching service:", err);
+        return throwError(() => new Error("Failed to load service"));
+      }),
+    );
   }
 
   /**
    * Fetch a single professional by ID
-   * GET /professional/{id} - stub, needs BFF endpoint
-   * Currently returns mock data - will be connected when BFF endpoint is available
+   * GET /professionals/:id from BFF
    */
   getProfessional(id: string): Observable<Professional> {
-    // TODO: Replace with actual BFF call when endpoint is available
-    // return this.http.get<Professional>(`${this.baseUrl}/professional/${id}`);
-
-    // Stub implementation - returns mock for now
-    return new Observable((subscriber) => {
-      console.warn(
-        "getProfessional: Using stub - BFF endpoint /professional/{id} not implemented yet",
+    return this.http
+      .get<Professional>(`${this.baseUrl}/professionals/${id}`)
+      .pipe(
+        catchError((err) => {
+          console.error("Error fetching professional:", err);
+          return throwError(() => new Error("Failed to load professional"));
+        }),
       );
-      subscriber.next({
-        id: id,
-        name: "Dr. Juan García",
-        avatar_url: undefined,
-      });
-      subscriber.complete();
-    });
   }
 
   /**

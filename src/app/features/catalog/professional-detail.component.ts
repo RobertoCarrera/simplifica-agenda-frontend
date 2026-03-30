@@ -53,7 +53,9 @@ import { forkJoin } from "rxjs";
           >
             <div class="service-info">
               <span class="service-name">{{ service.name }}</span>
-              <span class="service-duration">{{ service.duration }} min</span>
+              <span class="service-duration"
+                >{{ service.duration_minutes }} min</span
+              >
             </div>
             <span class="service-price">{{ service.price }}€</span>
           </div>
@@ -260,14 +262,17 @@ export class ProfessionalDetailComponent implements OnInit {
   }
 
   private loadProfessional(id: string) {
-    // Try to fetch from BFF - uses stub for now
+    // Fetch from BFF
     this.bookingService.getProfessional(id).subscribe({
       next: (professional) => {
         this.professional.set(professional);
-        // Load services that this professional offers
-        // In a real implementation, we'd fetch services from BFF and filter
-        // For now, we'll use stub services - these would come from the service catalog
-        this.loadServicesForProfessional();
+        // If BFF returns services with the professional, use them directly
+        // Otherwise fetch all services and filter
+        if (professional.services && professional.services.length > 0) {
+          this.services.set(professional.services);
+        } else {
+          this.loadServicesForProfessional();
+        }
       },
       error: (err) => {
         console.error("Error loading professional:", err);
@@ -306,8 +311,14 @@ export class ProfessionalDetailComponent implements OnInit {
 
   servicesForProfessional(): Service[] {
     const prof = this.professional();
+    const services = this.services();
     if (!prof) return [];
-    return this.services().filter((s) => s.professional_ids.includes(prof.id));
+    // If services already filtered from BFF response, return as-is
+    if (prof.services && prof.services.length > 0) {
+      return prof.services;
+    }
+    // Otherwise filter by professional_ids
+    return services.filter((s) => s.professional_ids?.includes(prof.id));
   }
 
   getInitials(name: string): string {

@@ -17,7 +17,7 @@ import { Service } from "../../services/booking-public.service";
       <div class="service-meta">
         <span class="service-duration">
           <i class="icon-clock"></i>
-          {{ service.duration }} min
+          {{ service.duration_minutes }} min
         </span>
       </div>
 
