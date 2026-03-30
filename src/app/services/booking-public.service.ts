@@ -194,7 +194,7 @@ export class BookingPublicService {
     return this.getServices(slug).pipe(
       map((response) =>
         response.services.filter((s) =>
-          s.professional_ids.includes(professionalId),
+          s.professionals?.some((p) => p.id === professionalId),
         ),
       ),
       catchError((err) => {

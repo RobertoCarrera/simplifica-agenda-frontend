@@ -46,14 +46,16 @@ import { forkJoin } from "rxjs";
               <img
                 *ngIf="prof.avatar_url; else initials"
                 [src]="prof.avatar_url"
-                [alt]="prof.name"
+                [alt]="prof.display_name"
               />
               <ng-template #initials>
-                <span class="initials">{{ getInitials(prof.name) }}</span>
+                <span class="initials">{{
+                  getInitials(prof.display_name)
+                }}</span>
               </ng-template>
             </div>
             <div class="prof-info">
-              <span class="prof-name">{{ prof.name }}</span>
+              <span class="prof-name">{{ prof.display_name }}</span>
               <span class="book-link"
                 >{{ "service.bookWith" | transloco }} →</span
               >
@@ -303,15 +305,8 @@ export class ServiceDetailComponent implements OnInit {
     this.bookingService.getService(id).subscribe({
       next: (service) => {
         this.service.set(service);
-        // If BFF returns professionals with the service, use them directly
-        // Otherwise fetch individually
-        if (service.professionals && service.professionals.length > 0) {
-          this.professionals.set(service.professionals);
-        } else if (service.professional_ids) {
-          this.loadProfessionalsForService(service.professional_ids);
-        } else {
-          this.professionals.set([]);
-        }
+        // BFF returns professionals with the service
+        this.professionals.set(service.professionals || []);
       },
       error: (err) => {
         console.error("Error loading service:", err);
@@ -343,9 +338,8 @@ export class ServiceDetailComponent implements OnInit {
   professionalsForService(): Professional[] {
     const service = this.service();
     if (!service) return [];
-    return this.professionals().filter((p) =>
-      service.professional_ids.includes(p.id),
-    );
+    // BFF returns professionals directly with the service
+    return service.professionals || [];
   }
 
   getInitials(name: string): string {
