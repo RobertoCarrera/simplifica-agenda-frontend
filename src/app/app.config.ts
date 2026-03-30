@@ -3,6 +3,7 @@ import { provideRouter } from "@angular/router";
 import { provideHttpClient, withFetch } from "@angular/common/http";
 import { provideAnimations } from "@angular/platform-browser/animations";
 import { provideTransloco } from "@jsverse/transloco";
+import { TranslocoHttpLoader } from "./transloco-http.loader";
 
 import { routes } from "./app.routes";
 
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
           useFallbackTranslation: true,
         },
       },
+      loader: TranslocoHttpLoader,
     }),
   ],
 };
