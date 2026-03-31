@@ -8,3 +8,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+.vercel
+.env*.local
+
+# Angular environment files with secrets - use environment.example.ts as template
+src/environments/environment*.ts
