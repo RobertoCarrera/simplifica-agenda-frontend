@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/generate-environments.mjs && npm run build",
   "outputDirectory": "dist/simplify-agenda-frontend/browser",
   "framework": "angular",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
