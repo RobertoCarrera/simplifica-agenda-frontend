@@ -10,11 +10,27 @@
  *   BFF_BASE_URL (optional, has default)
  */
 
-import { writeFileSync, mkdirSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Load .env.local if present (dev only — in CI env vars come from the platform)
+const envLocalPath = join(__dirname, "../.env.local");
+if (existsSync(envLocalPath)) {
+  readFileSync(envLocalPath, "utf8")
+    .split("\n")
+    .forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) return;
+      const eq = trimmed.indexOf("=");
+      if (eq === -1) return;
+      const key = trimmed.slice(0, eq).trim();
+      const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+      if (!(key in process.env)) process.env[key] = val;
+    });
+}
 const envDir = join(__dirname, "../src/environments");
 
 function requireEnv(name) {
