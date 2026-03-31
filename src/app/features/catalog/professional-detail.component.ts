@@ -7,7 +7,6 @@ import {
   Professional,
   Service,
 } from "../../services/booking-public.service";
-import { forkJoin } from "rxjs";
 
 @Component({
   selector: "app-professional-detail",
@@ -16,7 +15,7 @@ import { forkJoin } from "rxjs";
   template: `
     <div class="professional-detail-page" *ngIf="professional(); else loading">
       <header class="detail-header">
-        <a routerLink="/profesionales" class="back-link">
+        <a [routerLink]="['/', slug(), 'profesionales']" class="back-link">
           ← {{ "common.back" | transloco }}
         </a>
 
@@ -66,7 +65,7 @@ import { forkJoin } from "rxjs";
 
       <div class="actions">
         <a
-          [routerLink]="['/reservar']"
+          [routerLink]="['/', slug(), 'reservar']"
           [queryParams]="{ professional: professional()?.id }"
           class="btn btn-primary btn-lg"
         >
@@ -255,26 +254,37 @@ export class ProfessionalDetailComponent implements OnInit {
 
   professional = signal<Professional | null>(null);
   services = signal<Service[]>([]);
+  slug = signal<string>("");
 
   ngOnInit() {
+    // Get slug from route
+    this.route.paramMap.subscribe((params) => {
+      const slugParam = params.get("slug");
+      if (slugParam) {
+        this.slug.set(slugParam);
+      }
+    });
+
+    // Get resolved professional data
+    this.route.data.subscribe((data) => {
+      if (data["professional"]) {
+        this.professional.set(data["professional"] as Professional);
+        this.services.set(data["professional"]["services"] || []);
+      }
+    });
+
+    // Also check route param for professional ID (fallback)
     const professionalId = this.route.snapshot.paramMap.get("id");
-    if (professionalId) {
+    if (professionalId && !this.professional()) {
       this.loadProfessional(professionalId);
     }
   }
 
   private loadProfessional(id: string) {
-    // Fetch from BFF
     this.bookingService.getProfessional(id).subscribe({
       next: (professional) => {
         this.professional.set(professional);
-        // If BFF returns services with the professional, use them directly
-        // Otherwise fetch all services and filter
-        if (professional.services && professional.services.length > 0) {
-          this.services.set(professional.services);
-        } else {
-          this.loadServicesForProfessional();
-        }
+        this.services.set(professional.services || []);
       },
       error: (err) => {
         console.error("Error loading professional:", err);
@@ -282,16 +292,9 @@ export class ProfessionalDetailComponent implements OnInit {
     });
   }
 
-  private loadServicesForProfessional() {
-    // This method is now a fallback - BFF returns services with /professionals/:id
-    // Clear services since we'll use the ones from BFF response
-    this.services.set([]);
-  }
-
   servicesForProfessional(): Service[] {
     const prof = this.professional();
     if (!prof) return [];
-    // BFF returns services with the professional response
     return prof.services || [];
   }
 
@@ -305,7 +308,9 @@ export class ProfessionalDetailComponent implements OnInit {
   }
 
   bookService(service: Service) {
-    // Navigate to booking with service pre-selected
-    // This would need router injection
+    const currentSlug = this.slug();
+    this.router.navigate(["/", currentSlug, "reservar", service.id], {
+      queryParams: { professional: this.professional()?.id },
+    });
   }
 }

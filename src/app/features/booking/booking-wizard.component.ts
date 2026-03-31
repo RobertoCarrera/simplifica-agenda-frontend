@@ -1,4 +1,4 @@
-import { Component, signal } from "@angular/core";
+import { Component, OnInit, signal, inject } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { TranslocoModule } from "@jsverse/transloco";
@@ -20,7 +20,7 @@ interface BookingData {
   template: `
     <div class="booking-wizard">
       <header class="wizard-header">
-        <a routerLink="/" class="back-link"
+        <a [routerLink]="['/', slug(), 'servicios']" class="back-link"
           >&larr; {{ "nav.home" | transloco }}</a
         >
         <h1>{{ "booking.title" | transloco }}</h1>
@@ -335,7 +335,10 @@ interface BookingData {
     `,
   ],
 })
-export class BookingWizardComponent {
+export class BookingWizardComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   currentStep = signal(1);
   bookingData: BookingData = {
     clientName: "",
@@ -346,17 +349,40 @@ export class BookingWizardComponent {
     slot: null,
   };
   errors = signal<Record<string, string>>({});
+  slug = signal<string>("");
+  serviceId = signal<string>("");
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {}
+  ngOnInit() {
+    // Get slug from parent route (the :slug param)
+    const parentSnapshot = this.route.parent?.snapshot;
+    if (parentSnapshot) {
+      const slugParam = parentSnapshot.paramMap.get("slug");
+      if (slugParam) {
+        this.slug.set(slugParam);
+      }
+    }
+
+    // Get serviceId from current route params
+    const serviceIdParam = this.route.snapshot.paramMap.get("serviceId");
+    if (serviceIdParam) {
+      this.serviceId.set(serviceIdParam);
+    }
+
+    // Also check for professional in query params
+    this.route.queryParams.subscribe((queryParams) => {
+      if (queryParams["professional"]) {
+        this.bookingData.professionalId = queryParams["professional"];
+      }
+    });
+  }
 
   selectMethod(method: "auto" | "manual") {
     this.bookingData.method = method;
   }
 
   nextStep() {
+    const currentSlug = this.slug();
+
     if (this.currentStep() === 1) {
       if (this.validateStep1()) {
         this.currentStep.set(2);
@@ -364,7 +390,7 @@ export class BookingWizardComponent {
     } else if (this.currentStep() === 2) {
       if (this.bookingData.method === "auto") {
         // Auto-slot: skip to confirmation
-        this.router.navigate(["/confirmacion", "auto"]);
+        this.router.navigate(["/", currentSlug, "confirmacion", "auto"]);
       } else {
         this.currentStep.set(3);
       }

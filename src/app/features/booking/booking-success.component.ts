@@ -1,5 +1,5 @@
-import { Component } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Component, OnInit, signal, inject } from "@angular/core";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 
 @Component({
@@ -18,7 +18,7 @@ import { TranslocoModule } from "@jsverse/transloco";
             <span class="label"
               >{{ "booking.success.bookingId" | transloco }}:</span
             >
-            <span class="value">#ABC123</span>
+            <span class="value">{{ bookingId() }}</span>
           </div>
         </div>
 
@@ -26,7 +26,10 @@ import { TranslocoModule } from "@jsverse/transloco";
           <button class="btn btn-primary">
             {{ "booking.success.addToCalendar" | transloco }}
           </button>
-          <a routerLink="/" class="btn btn-secondary">
+          <a
+            [routerLink]="['/', slug(), 'servicios']"
+            class="btn btn-secondary"
+          >
             {{ "booking.success.backToHome" | transloco }}
           </a>
         </div>
@@ -109,4 +112,29 @@ import { TranslocoModule } from "@jsverse/transloco";
     `,
   ],
 })
-export class BookingSuccessComponent {}
+export class BookingSuccessComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  bookingId = signal<string>("");
+  slug = signal<string>("");
+
+  ngOnInit() {
+    // Get slug from parent route
+    const parentSnapshot = this.route.parent?.snapshot;
+    if (parentSnapshot) {
+      const slugParam = parentSnapshot.paramMap.get("slug");
+      if (slugParam) {
+        this.slug.set(slugParam);
+      }
+    }
+
+    // Get bookingId from route params
+    const bookingIdParam = this.route.snapshot.paramMap.get("bookingId");
+    if (bookingIdParam) {
+      this.bookingId.set(bookingIdParam);
+    } else {
+      this.bookingId.set("N/A");
+    }
+  }
+}

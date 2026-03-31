@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from "@angular/core";
+import { Component, OnInit, inject, signal, computed } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
@@ -8,7 +8,6 @@ import {
   Professional,
   Company,
 } from "../../services/booking-public.service";
-import { forkJoin } from "rxjs";
 
 @Component({
   selector: "app-service-detail",
@@ -17,7 +16,7 @@ import { forkJoin } from "rxjs";
   template: `
     <div class="service-detail-page" *ngIf="service(); else loading">
       <header class="detail-header">
-        <a routerLink="/servicios" class="back-link">
+        <a [routerLink]="['/', slug(), 'servicios']" class="back-link">
           ← {{ "common.back" | transloco }}
         </a>
 
@@ -66,7 +65,7 @@ import { forkJoin } from "rxjs";
 
       <div class="actions">
         <a
-          [routerLink]="['/reservar', service()?.id]"
+          [routerLink]="['/', slug(), 'reservar', service()?.id]"
           class="btn btn-primary btn-lg"
         >
           {{ "service.bookNow" | transloco }}
@@ -82,7 +81,7 @@ import { forkJoin } from "rxjs";
 
     <div class="error-state" *ngIf="error()">
       <p>{{ error() }}</p>
-      <a routerLink="/servicios" class="btn btn-outline">
+      <a [routerLink]="['/', slug(), 'servicios']" class="btn btn-outline">
         {{ "common.backToServices" | transloco }}
       </a>
     </div>
@@ -290,10 +289,28 @@ export class ServiceDetailComponent implements OnInit {
   professionals = signal<Professional[]>([]);
   company = signal<Company | null>(null);
   error = signal<string | null>(null);
+  slug = signal<string>("");
 
   ngOnInit() {
+    // Get slug from route
+    this.route.paramMap.subscribe((params) => {
+      const slugParam = params.get("slug");
+      if (slugParam) {
+        this.slug.set(slugParam);
+      }
+    });
+
+    // Get resolved service data
+    this.route.data.subscribe((data) => {
+      if (data["service"]) {
+        this.service.set(data["service"] as Service);
+        this.professionals.set(data["service"]["professionals"] || []);
+      }
+    });
+
+    // Also check route param for service ID (fallback)
     const serviceId = this.route.snapshot.paramMap.get("id");
-    if (serviceId) {
+    if (serviceId && !this.service()) {
       this.loadService(serviceId);
     }
   }
@@ -301,11 +318,9 @@ export class ServiceDetailComponent implements OnInit {
   private loadService(id: string) {
     this.error.set(null);
 
-    // Try to fetch from BFF
     this.bookingService.getService(id).subscribe({
       next: (service) => {
         this.service.set(service);
-        // BFF returns professionals with the service
         this.professionals.set(service.professionals || []);
       },
       error: (err) => {
@@ -315,30 +330,9 @@ export class ServiceDetailComponent implements OnInit {
     });
   }
 
-  private loadProfessionalsForService(professionalIds: string[]) {
-    const professionalObservables = professionalIds.map((id) =>
-      this.bookingService.getProfessional(id),
-    );
-
-    if (professionalObservables.length === 0) {
-      this.professionals.set([]);
-      return;
-    }
-
-    forkJoin(professionalObservables).subscribe({
-      next: (professionals) => {
-        this.professionals.set(professionals);
-      },
-      error: (err) => {
-        console.error("Error loading professionals:", err);
-      },
-    });
-  }
-
   professionalsForService(): Professional[] {
     const service = this.service();
     if (!service) return [];
-    // BFF returns professionals directly with the service
     return service.professionals || [];
   }
 
@@ -352,7 +346,8 @@ export class ServiceDetailComponent implements OnInit {
   }
 
   bookWithProfessional(professional: Professional) {
-    this.router.navigate(["/reservar", this.service()?.id], {
+    const currentSlug = this.slug();
+    this.router.navigate(["/", currentSlug, "reservar", this.service()?.id], {
       queryParams: { professional: professional.id },
     });
   }
