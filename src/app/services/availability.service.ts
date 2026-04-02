@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from "@angular/core";
-import { BusyPeriod } from "../../services/booking-public.service";
-import { TimeSlot } from "./time-slot.component";
+import { BusyPeriod } from "./booking-public.service";
+import { TimeSlot } from "../features/calendar/time-slot.component";
 
 export interface WeekDay {
   date: Date;

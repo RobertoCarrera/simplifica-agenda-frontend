@@ -4,10 +4,11 @@ import {
   Output,
   EventEmitter,
   OnInit,
+  OnChanges,
+  SimpleChanges,
   inject,
   signal,
   computed,
-  effect,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { TranslocoModule } from "@jsverse/transloco";
@@ -241,11 +242,12 @@ import { BusyPeriod } from "../../services/booking-public.service";
     `,
   ],
 })
-export class WeeklyCalendarComponent implements OnInit {
+export class WeeklyCalendarComponent implements OnInit, OnChanges {
   @Input() busyPeriods: BusyPeriod[] = [];
   @Input() serviceDuration: number = 30;
   @Input() initialDate?: Date;
   @Output() slotSelected = new EventEmitter<TimeSlot>();
+  @Output() weekChanged = new EventEmitter<Date>();
 
   private availabilityService = inject(AvailabilityService);
 
@@ -278,6 +280,12 @@ export class WeeklyCalendarComponent implements OnInit {
       );
     }
     this.generateCalendar();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['busyPeriods'] && !changes['busyPeriods'].firstChange) {
+      this.generateCalendar();
+    }
   }
 
   private generateCalendar() {
@@ -336,6 +344,7 @@ export class WeeklyCalendarComponent implements OnInit {
     this.weekStart.set(prev);
     this.selectedSlot.set(null);
     this.generateCalendar();
+    this.weekChanged.emit(prev);
   }
 
   nextWeek() {
@@ -343,6 +352,7 @@ export class WeeklyCalendarComponent implements OnInit {
     this.weekStart.set(next);
     this.selectedSlot.set(null);
     this.generateCalendar();
+    this.weekChanged.emit(next);
   }
 
   formatSelectedDate(): string {

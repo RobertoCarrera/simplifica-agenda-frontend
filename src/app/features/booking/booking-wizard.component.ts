@@ -1,430 +1,798 @@
-import { Component, OnInit, signal, inject } from "@angular/core";
+import { Component, OnInit, signal, computed, inject } from "@angular/core";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { TranslocoModule } from "@jsverse/transloco";
 import { CommonModule } from "@angular/common";
-
-interface BookingData {
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  professionalId: string | null;
-  method: "auto" | "manual" | null;
-  slot: { date: Date; time: string } | null;
-}
+import {
+  BookingPublicService,
+  Service,
+  Professional,
+  BusyPeriod,
+} from "../../services/booking-public.service";
+import { AvailabilityService } from "../../services/availability.service";
+import { WeeklyCalendarComponent } from "../calendar/weekly-calendar.component";
+import { TimeSlot } from "../calendar/time-slot.component";
 
 @Component({
   selector: "app-booking-wizard",
   standalone: true,
-  imports: [FormsModule, TranslocoModule, CommonModule, RouterLink],
+  imports: [FormsModule, TranslocoModule, CommonModule, RouterLink, WeeklyCalendarComponent],
   template: `
-    <div class="booking-wizard">
-      <header class="wizard-header">
-        <a [routerLink]="['/', slug(), 'servicios']" class="back-link"
-          >&larr; {{ "nav.home" | transloco }}</a
-        >
-        <h1>{{ "booking.title" | transloco }}</h1>
-      </header>
+    <div class="wizard-page">
+      <!-- Back link -->
+      <a [routerLink]="['/', slug(), 'servicios']" class="back-link">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:1rem;height:1rem">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Volver a servicios
+      </a>
 
-      <!-- Progress Steps -->
-      <div class="progress-steps">
-        <div
-          class="step"
-          [class.active]="currentStep() >= 1"
-          [class.completed]="currentStep() > 1"
-        >
-          <span class="step-number">1</span>
-          <span class="step-label">{{ "booking.step1" | transloco }}</span>
+      @if (loadingService()) {
+        <div class="service-summary-skeleton skeleton"></div>
+      } @else if (service()) {
+        <!-- Service summary bar -->
+        <div class="service-summary">
+          <span class="service-dot" [style.background]="service()!.color || '#94a3b8'"></span>
+          <div class="service-summary-info">
+            <strong>{{ service()!.name }}</strong>
+            <span class="service-summary-meta">{{ service()!.duration_minutes }} min</span>
+            @if (service()!.price != null) {
+              <span class="service-summary-price">{{ service()!.price }}€</span>
+            }
+          </div>
         </div>
-        <div class="step-line" [class.active]="currentStep() > 1"></div>
-        <div
-          class="step"
-          [class.active]="currentStep() >= 2"
-          [class.completed]="currentStep() > 2"
-        >
-          <span class="step-number">2</span>
-          <span class="step-label">{{ "booking.step2" | transloco }}</span>
+      }
+
+      @if (step() === 4) {
+        <!-- ── SUCCESS ────────────────────────────────── -->
+        <div class="success-card">
+          <div class="success-icon">✓</div>
+          <h2 class="success-title">¡Reserva confirmada!</h2>
+          @if (bookingId()) {
+            <p class="success-id">Ref: {{ bookingId() }}</p>
+          }
+          @if (selectedSlot()) {
+            <p class="success-detail">
+              {{ service()?.name }} · {{ formatSlotDate(selectedSlot()!) }}
+            </p>
+          }
+          <a [routerLink]="['/', slug(), 'servicios']" class="btn btn-primary">
+            Volver al inicio
+          </a>
         </div>
-        <div class="step-line" [class.active]="currentStep() > 2"></div>
-        <div class="step" [class.active]="currentStep() >= 3">
-          <span class="step-number">3</span>
-          <span class="step-label">{{ "booking.step3" | transloco }}</span>
+      } @else {
+        <!-- ── PROGRESS BAR ────────────────────────────── -->
+        <div class="progress-bar">
+          @for (n of [1,2,3]; track n) {
+            <div class="progress-step" [class.active]="step() >= n" [class.done]="step() > n">
+              <div class="ps-circle">{{ step() > n ? '✓' : n }}</div>
+              <span class="ps-label">
+                @switch (n) {
+                  @case (1) { Tus datos }
+                  @case (2) { Cuándo }
+                  @case (3) { Confirmar }
+                }
+              </span>
+            </div>
+            @if (n < 3) { <div class="progress-line" [class.done]="step() > n"></div> }
+          }
         </div>
-      </div>
 
-      <!-- Step Content -->
-      <div class="step-content">
-        @switch (currentStep()) {
-          @case (1) {
-            <!-- Step 1: Personal Data -->
-            <div class="step1-form">
-              <h2>{{ "booking.step1" | transloco }}</h2>
+        <!-- ── STEP 1: Client info + pro select ────────── -->
+        @if (step() === 1) {
+          <div class="step-card">
+            <h2 class="step-title">Tus datos de contacto</h2>
 
+            @if (professionals().length > 0) {
               <div class="form-group">
-                <label for="clientName"
-                  >{{ "booking.personal.name" | transloco }} *</label
-                >
-                <input
-                  type="text"
-                  id="clientName"
-                  [(ngModel)]="bookingData.clientName"
-                  [placeholder]="'booking.personal.namePlaceholder' | transloco"
-                  [class.invalid]="errors()['clientName']"
-                />
-                @if (errors()["clientName"]) {
-                  <span class="error-message">{{
-                    errors()["clientName"] | transloco
-                  }}</span>
-                }
+                <label for="profSelect">Profesional</label>
+                <select id="profSelect" [(ngModel)]="formProfessionalId" class="form-control">
+                  <option value="">Sin preferencia</option>
+                  @for (p of professionals(); track p.id) {
+                    <option [value]="p.id">{{ p.display_name }}</option>
+                  }
+                </select>
               </div>
+            }
 
-              <div class="form-group">
-                <label for="clientEmail"
-                  >{{ "booking.personal.email" | transloco }} *</label
-                >
-                <input
-                  type="email"
-                  id="clientEmail"
-                  [(ngModel)]="bookingData.clientEmail"
-                  [placeholder]="
-                    'booking.personal.emailPlaceholder' | transloco
-                  "
-                  [class.invalid]="errors()['clientEmail']"
-                />
-                @if (errors()["clientEmail"]) {
-                  <span class="error-message">{{
-                    errors()["clientEmail"] | transloco
-                  }}</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label for="clientPhone"
-                  >{{ "booking.personal.phone" | transloco }} *</label
-                >
-                <input
-                  type="tel"
-                  id="clientPhone"
-                  [(ngModel)]="bookingData.clientPhone"
-                  [placeholder]="
-                    'booking.personal.phonePlaceholder' | transloco
-                  "
-                  [class.invalid]="errors()['clientPhone']"
-                />
-                @if (errors()["clientPhone"]) {
-                  <span class="error-message">{{
-                    errors()["clientPhone"] | transloco
-                  }}</span>
-                }
-              </div>
-
-              <div class="form-actions">
-                <button class="btn btn-primary" (click)="nextStep()">
-                  {{ "booking.continue" | transloco }}
-                </button>
-              </div>
+            <div class="form-group">
+              <label for="clientName">Nombre *</label>
+              <input id="clientName" type="text" class="form-control"
+                [(ngModel)]="formName" placeholder="Tu nombre completo"
+                [class.invalid]="errors()['name']" />
+              @if (errors()['name']) {
+                <span class="error-msg">{{ errors()['name'] }}</span>
+              }
             </div>
-          }
 
-          @case (2) {
-            <!-- Step 2: Method Selection -->
-            <div class="step2-method">
-              <h2>{{ "booking.method.title" | transloco }}</h2>
-
-              <div class="method-options">
-                <div
-                  class="method-card"
-                  [class.selected]="bookingData.method === 'auto'"
-                  (click)="selectMethod('auto')"
-                >
-                  <h3>{{ "booking.method.firstAvailable" | transloco }}</h3>
-                  <p>{{ "booking.method.firstAvailableDesc" | transloco }}</p>
-                </div>
-
-                <div
-                  class="method-card"
-                  [class.selected]="bookingData.method === 'manual'"
-                  (click)="selectMethod('manual')"
-                >
-                  <h3>{{ "booking.method.chooseTime" | transloco }}</h3>
-                  <p>{{ "booking.method.chooseTimeDesc" | transloco }}</p>
-                </div>
-              </div>
-
-              <div class="form-actions">
-                <button class="btn btn-secondary" (click)="prevStep()">
-                  {{ "booking.back" | transloco }}
-                </button>
-                <button
-                  class="btn btn-primary"
-                  (click)="nextStep()"
-                  [disabled]="!bookingData.method"
-                >
-                  {{ "booking.continue" | transloco }}
-                </button>
-              </div>
+            <div class="form-group">
+              <label for="clientPhone">Teléfono *</label>
+              <input id="clientPhone" type="tel" class="form-control"
+                [(ngModel)]="formPhone" placeholder="Tu número de teléfono"
+                [class.invalid]="errors()['phone']" />
+              @if (errors()['phone']) {
+                <span class="error-msg">{{ errors()['phone'] }}</span>
+              }
             </div>
-          }
 
-          @case (3) {
-            <!-- Step 3: Calendar -->
-            <div class="step3-calendar">
-              <h2>{{ "booking.calendar.title" | transloco }}</h2>
-
-              <div class="calendar-placeholder">
-                <p class="text-muted">
-                  {{ "booking.calendar.noSlots" | transloco }}
-                </p>
-              </div>
-
-              <div class="form-actions">
-                <button class="btn btn-secondary" (click)="prevStep()">
-                  {{ "booking.back" | transloco }}
-                </button>
-              </div>
+            <div class="form-group">
+              <label for="clientEmail">Email *</label>
+              <input id="clientEmail" type="email" class="form-control"
+                [(ngModel)]="formEmail" placeholder="tu@correo.com"
+                [class.invalid]="errors()['email']" />
+              @if (errors()['email']) {
+                <span class="error-msg">{{ errors()['email'] }}</span>
+              }
             </div>
-          }
+
+            <div class="step-actions">
+              <button class="btn btn-primary btn-full" (click)="goStep2()">
+                Continuar
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:1rem;height:1rem">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         }
-      </div>
+
+        <!-- ── STEP 2: Method selection ─────────────────── -->
+        @if (step() === 2) {
+          <div class="step-card">
+            <h2 class="step-title">¿Cuándo quieres tu cita?</h2>
+
+            @if (autoSearching()) {
+              <div class="auto-searching">
+                <div class="spinner"></div>
+                <p>Buscando la primera disponibilidad...</p>
+              </div>
+            } @else if (autoError()) {
+              <div class="auto-error">
+                <p>{{ autoError() }}</p>
+                <button class="btn btn-outline" (click)="clearAutoError()">Intentar de nuevo</button>
+              </div>
+            } @else {
+              <div class="method-cards">
+                <button class="method-card" (click)="selectMethodAuto()">
+                  <div class="method-icon">⚡</div>
+                  <div class="method-info">
+                    <strong>Primera disponible</strong>
+                    <p>Te buscamos el primer hueco libre</p>
+                  </div>
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:1.25rem;height:1.25rem;opacity:0.4">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+                <button class="method-card" (click)="selectMethodManual()">
+                  <div class="method-icon">📅</div>
+                  <div class="method-info">
+                    <strong>Elegir día y hora</strong>
+                    <p>Selecciona tú mismo cuándo quieres venir</p>
+                  </div>
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:1.25rem;height:1.25rem;opacity:0.4">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </div>
+            }
+
+            <div class="step-actions step-actions-back">
+              <button class="btn btn-ghost" (click)="step.set(1)">← Atrás</button>
+            </div>
+          </div>
+        }
+
+        <!-- ── STEP 3: Calendar ───────────────────────── -->
+        @if (step() === 3) {
+          <div class="step-card step-card-wide">
+            <h2 class="step-title">Selecciona tu horario</h2>
+
+            @if (loadingAvailability()) {
+              <div class="availability-loading">
+                <div class="spinner"></div>
+                <p>Cargando disponibilidad...</p>
+              </div>
+            } @else {
+              <app-weekly-calendar
+                [busyPeriods]="busyPeriods()"
+                [serviceDuration]="service()?.duration_minutes ?? 30"
+                [initialDate]="calendarInitialDate()"
+                (slotSelected)="onSlotSelected($event)"
+                (weekChanged)="onWeekChanged($event)"
+              />
+            }
+
+            <div class="step-actions">
+              <button class="btn btn-ghost" (click)="step.set(2)">← Atrás</button>
+              <button
+                class="btn btn-primary"
+                [disabled]="!selectedSlot() || submitting()"
+                (click)="confirmBooking()"
+              >
+                @if (submitting()) {
+                  <div class="spinner spinner-sm"></div>
+                  Enviando...
+                } @else if (selectedSlot()) {
+                  Reservar {{ formatSlotDate(selectedSlot()!) }}
+                } @else {
+                  Selecciona una hora
+                }
+              </button>
+            </div>
+
+            @if (submitError()) {
+              <div class="submit-error">{{ submitError() }}</div>
+            }
+          </div>
+        }
+      }
     </div>
   `,
   styles: [
     `
-      .booking-wizard {
-        max-width: 600px;
+      :host { display: block; }
+
+      .wizard-page {
+        max-width: 680px;
         margin: 0 auto;
-        padding: var(--space-8) var(--space-4);
+        padding: var(--space-6) var(--space-4) var(--space-16);
       }
 
-      .wizard-header {
-        margin-bottom: var(--space-6);
-
-        .back-link {
-          display: inline-block;
-          margin-bottom: var(--space-4);
-          font-size: var(--font-size-sm);
-          color: var(--color-text-secondary);
-        }
-
-        h1 {
-          font-size: var(--font-size-2xl);
-        }
-      }
-
-      .progress-steps {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: var(--space-8);
-      }
-
-      .step {
-        display: flex;
+      /* ── Back link ── */
+      .back-link {
+        display: inline-flex;
         align-items: center;
         gap: var(--space-2);
-        color: var(--color-text-muted);
-
-        &.active {
-          color: var(--color-primary);
-
-          .step-number {
-            background: var(--color-primary);
-            color: white;
-          }
-        }
-
-        &.completed {
-          .step-number {
-            background: var(--color-success);
-            color: white;
-          }
-        }
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        margin-bottom: var(--space-6);
+        transition: color var(--transition-fast);
+        &:hover { color: var(--color-text-primary); }
       }
 
-      .step-number {
-        width: 28px;
-        height: 28px;
+      /* ── Service summary ── */
+      .service-summary-skeleton {
+        height: 3.5rem;
+        border-radius: var(--radius-xl);
+        margin-bottom: var(--space-6);
+        background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .service-summary {
         display: flex;
         align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background: var(--color-surface);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-semibold);
-      }
-
-      .step-label {
-        font-size: var(--font-size-sm);
-
-        @media (max-width: 480px) {
-          display: none;
-        }
-      }
-
-      .step-line {
-        width: 40px;
-        height: 2px;
-        background: var(--color-border);
-        margin: 0 var(--space-2);
-
-        &.active {
-          background: var(--color-success);
-        }
-      }
-
-      .step-content {
+        gap: var(--space-3);
         background: var(--color-background);
         border: 1px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        padding: var(--space-6);
+        border-radius: var(--radius-xl);
+        padding: var(--space-3) var(--space-4);
+        margin-bottom: var(--space-6);
+        box-shadow: var(--shadow-sm);
       }
-
-      .step1-form,
-      .step2-method,
-      .step3-calendar {
-        h2 {
-          font-size: var(--font-size-xl);
-          margin-bottom: var(--space-6);
-        }
+      .service-dot {
+        width: 0.625rem;
+        height: 0.625rem;
+        border-radius: 50%;
+        flex-shrink: 0;
       }
-
-      .form-actions {
+      .service-summary-info {
         display: flex;
-        gap: var(--space-4);
-        margin-top: var(--space-6);
+        align-items: center;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        strong { color: var(--color-text-primary); font-size: var(--font-size-sm); }
+      }
+      .service-summary-meta {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-full);
+        padding: 2px var(--space-2);
+      }
+      .service-summary-price {
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary);
       }
 
-      .method-options {
-        display: grid;
-        gap: var(--space-4);
+      /* ── Progress bar ── */
+      .progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: var(--space-8);
       }
-
-      .method-card {
-        padding: var(--space-5);
-        border: 2px solid var(--color-border);
-        border-radius: var(--radius-lg);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-
-        &:hover {
-          border-color: var(--color-primary-light);
-        }
-
-        &.selected {
-          border-color: var(--color-primary);
-          background: var(--color-primary-light);
-        }
-
-        h3 {
-          font-size: var(--font-size-base);
-          margin-bottom: var(--space-2);
-        }
-
-        p {
+      .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-1);
+        .ps-circle {
+          width: 2rem;
+          height: 2rem;
+          border-radius: 50%;
+          background: var(--color-surface);
+          border: 2px solid var(--color-border);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-size: var(--font-size-sm);
-          color: var(--color-text-secondary);
+          font-weight: var(--font-weight-semibold);
+          color: var(--color-text-muted);
+          transition: all var(--transition-fast);
+        }
+        .ps-label {
+          font-size: 0.65rem;
+          color: var(--color-text-muted);
+          white-space: nowrap;
+        }
+        &.active .ps-circle {
+          background: var(--color-primary);
+          border-color: var(--color-primary);
+          color: white;
+        }
+        &.active .ps-label { color: var(--color-primary); font-weight: var(--font-weight-medium); }
+        &.done .ps-circle {
+          background: #10B981;
+          border-color: #10B981;
+          color: white;
         }
       }
+      .progress-line {
+        width: 2rem;
+        height: 2px;
+        background: var(--color-border);
+        margin-bottom: 1.2rem;
+        flex-shrink: 0;
+        transition: background var(--transition-fast);
+        &.done { background: #10B981; }
+      }
 
-      .calendar-placeholder {
-        min-height: 200px;
+      /* ── Step card ── */
+      .step-card {
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        padding: var(--space-6);
+        box-shadow: var(--shadow-sm);
+      }
+      .step-card-wide {
+        max-width: 100%;
+        width: 100%;
+      }
+      .step-title {
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-primary);
+        margin: 0 0 var(--space-6);
+      }
+
+      /* ── Form ── */
+      .form-group {
+        margin-bottom: var(--space-4);
+        label {
+          display: block;
+          font-size: var(--font-size-sm);
+          font-weight: var(--font-weight-medium);
+          color: var(--color-text-secondary);
+          margin-bottom: var(--space-1);
+        }
+      }
+      .form-control {
+        display: block;
+        width: 100%;
+        padding: var(--space-2) var(--space-3);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-sm);
+        background: var(--color-background);
+        color: var(--color-text-primary);
+        transition: border-color var(--transition-fast);
+        box-sizing: border-box;
+        &:focus { outline: none; border-color: var(--color-primary); }
+        &.invalid { border-color: var(--color-error); }
+      }
+      .error-msg {
+        font-size: var(--font-size-xs);
+        color: var(--color-error);
+        margin-top: var(--space-1);
+        display: block;
+      }
+
+      /* ── Step actions ── */
+      .step-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-3);
+        margin-top: var(--space-6);
+        border-top: 1px solid var(--color-border);
+        padding-top: var(--space-4);
+      }
+      .step-actions-back { justify-content: flex-start; }
+
+      /* ── Method cards ── */
+      .method-cards {
+        display: grid;
+        gap: var(--space-3);
+      }
+      .method-card {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-4) var(--space-5);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        background: var(--color-background);
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+        transition: all var(--transition-fast);
+        &:hover {
+          border-color: var(--color-primary);
+          box-shadow: var(--shadow-sm);
+        }
+      }
+      .method-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+      }
+      .method-info {
+        flex: 1;
+        min-width: 0;
+        strong { display: block; font-size: var(--font-size-sm); color: var(--color-text-primary); margin-bottom: var(--space-1); }
+        p { font-size: var(--font-size-xs); color: var(--color-text-muted); margin: 0; }
+      }
+
+      /* ── Auto searching ── */
+      .auto-searching, .availability-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-4);
+        padding: var(--space-10) 0;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+      }
+      .auto-error {
+        padding: var(--space-4);
+        border: 1px solid var(--color-error);
+        border-radius: var(--radius-md);
+        color: var(--color-error);
+        font-size: var(--font-size-sm);
+        text-align: center;
+        margin-bottom: var(--space-4);
+        p { margin: 0 0 var(--space-3); }
+      }
+
+      /* ── Submit error ── */
+      .submit-error {
+        margin-top: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: var(--radius-md);
+        font-size: var(--font-size-sm);
+        color: var(--color-error);
+        text-align: center;
+      }
+
+      /* ── Success ── */
+      .success-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-12) var(--space-6);
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        text-align: center;
+      }
+      .success-icon {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        background: #d1fae5;
+        color: #059669;
+        font-size: 1.75rem;
+        font-weight: bold;
         display: flex;
         align-items: center;
         justify-content: center;
       }
+      .success-title {
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-primary);
+        margin: 0;
+      }
+      .success-id {
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+        margin: 0;
+      }
+      .success-detail {
+        font-size: var(--font-size-base);
+        color: var(--color-text-secondary);
+        margin: 0;
+      }
+
+      /* ── Spinner ── */
+      .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid var(--color-border);
+        border-top-color: var(--color-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .spinner-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 2px;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* ── Buttons ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-5);
+        border: none;
+        border-radius: var(--radius-lg);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        cursor: pointer;
+        text-decoration: none;
+        transition: all var(--transition-fast);
+        &:disabled { opacity: 0.5; cursor: not-allowed; }
+      }
+      .btn-primary {
+        background: var(--color-primary);
+        color: white;
+        &:hover:not(:disabled) { background: var(--color-primary-hover); }
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--color-text-secondary);
+        &:hover { color: var(--color-text-primary); }
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-text-primary);
+        &:hover { border-color: var(--color-primary); color: var(--color-primary); }
+      }
+      .btn-full { width: 100%; }
     `,
   ],
 })
 export class BookingWizardComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private bookingService = inject(BookingPublicService);
+  private availabilityService = inject(AvailabilityService);
 
-  currentStep = signal(1);
-  bookingData: BookingData = {
-    clientName: "",
-    clientEmail: "",
-    clientPhone: "",
-    professionalId: null,
-    method: null,
-    slot: null,
-  };
-  errors = signal<Record<string, string>>({});
+  // Route state
   slug = signal<string>("");
   serviceId = signal<string>("");
 
+  // Data
+  service = signal<Service | null>(null);
+  professionals = signal<Professional[]>([]);
+  loadingService = signal(true);
+
+  // Form fields (step 1)
+  formName = "";
+  formPhone = "";
+  formEmail = "";
+  formProfessionalId = "";
+  errors = signal<Record<string, string>>({});
+
+  // Wizard state
+  step = signal(1);
+
+  // Availability / calendar
+  busyPeriods = signal<BusyPeriod[]>([]);
+  calendarInitialDate = signal<Date | undefined>(undefined);
+  loadingAvailability = signal(false);
+  selectedSlot = signal<TimeSlot | null>(null);
+
+  // Auto-booking search
+  autoSearching = signal(false);
+  autoError = signal<string | null>(null);
+
+  // Submission
+  submitting = signal(false);
+  submitError = signal<string | null>(null);
+  bookingId = signal<string | null>(null);
+
   ngOnInit() {
-    // Get slug from parent route (the :slug param)
-    const parentSnapshot = this.route.parent?.snapshot;
-    if (parentSnapshot) {
-      const slugParam = parentSnapshot.paramMap.get("slug");
-      if (slugParam) {
-        this.slug.set(slugParam);
-      }
-    }
+    // Slug from parent route (:slug)
+    const parentParams = this.route.parent?.snapshot.paramMap;
+    const slugVal = parentParams?.get("slug") ?? this.route.snapshot.paramMap.get("slug") ?? "";
+    this.slug.set(slugVal);
 
-    // Get serviceId from current route params
-    const serviceIdParam = this.route.snapshot.paramMap.get("serviceId");
-    if (serviceIdParam) {
-      this.serviceId.set(serviceIdParam);
-    }
+    // serviceId from current route
+    const svcId = this.route.snapshot.paramMap.get("serviceId") ?? "";
+    this.serviceId.set(svcId);
 
-    // Also check for professional in query params
-    this.route.queryParams.subscribe((queryParams) => {
-      if (queryParams["professional"]) {
-        this.bookingData.professionalId = queryParams["professional"];
-      }
+    // Professional pre-selected from query param
+    this.route.queryParams.subscribe((qp) => {
+      if (qp["professional"]) this.formProfessionalId = qp["professional"];
+    });
+
+    // Load service data
+    if (slugVal) {
+      this.bookingService.getServices(slugVal).subscribe({
+        next: (res) => {
+          const svc = res.services.find((s) => s.id === svcId) ?? null;
+          this.service.set(svc);
+          this.professionals.set(res.professionals);
+          this.loadingService.set(false);
+        },
+        error: () => this.loadingService.set(false),
+      });
+    }
+  }
+
+  // ── Step 1 ────────────────────────────────────────────────
+  goStep2() {
+    const errs: Record<string, string> = {};
+    if (!this.formName.trim()) errs["name"] = "El nombre es obligatorio";
+    if (!this.formPhone.trim()) errs["phone"] = "El teléfono es obligatorio";
+    if (!this.formEmail.trim()) errs["email"] = "El email es obligatorio";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formEmail))
+      errs["email"] = "Email no válido";
+    this.errors.set(errs);
+    if (Object.keys(errs).length === 0) this.step.set(2);
+  }
+
+  // ── Step 2 ────────────────────────────────────────────────
+  selectMethodAuto() {
+    this.autoError.set(null);
+    this.autoSearching.set(true);
+    const weekStart = this.availabilityService.getWeekStart(new Date());
+    this.searchAutoSlot(weekStart, 0);
+  }
+
+  private searchAutoSlot(weekStart: Date, weeksChecked: number) {
+    if (weeksChecked >= 4) {
+      this.autoError.set("No hay disponibilidad en las próximas 4 semanas");
+      this.autoSearching.set(false);
+      return;
+    }
+    const weekStr = this.formatDateParam(weekStart);
+    const profId = this.formProfessionalId || undefined;
+    this.bookingService.getAvailability(this.slug(), weekStr, profId).subscribe({
+      next: (res) => {
+        const days = this.availabilityService.generateWeekDays(weekStart);
+        for (const day of days) {
+          const slot = this.availabilityService.getFirstAvailableSlot(
+            day,
+            res.busy_periods,
+            this.service()?.duration_minutes ?? 30,
+          );
+          if (slot) {
+            this.busyPeriods.set(res.busy_periods);
+            this.calendarInitialDate.set(slot.datetime);
+            this.selectedSlot.set(slot);
+            this.autoSearching.set(false);
+            this.step.set(3);
+            return;
+          }
+        }
+        const next = this.availabilityService.getNextWeek(weekStart);
+        this.searchAutoSlot(next, weeksChecked + 1);
+      },
+      error: () => {
+        this.autoError.set("Error al buscar disponibilidad");
+        this.autoSearching.set(false);
+      },
     });
   }
 
-  selectMethod(method: "auto" | "manual") {
-    this.bookingData.method = method;
+  clearAutoError() {
+    this.autoError.set(null);
   }
 
-  nextStep() {
-    const currentSlug = this.slug();
-
-    if (this.currentStep() === 1) {
-      if (this.validateStep1()) {
-        this.currentStep.set(2);
-      }
-    } else if (this.currentStep() === 2) {
-      if (this.bookingData.method === "auto") {
-        // Auto-slot: skip to confirmation
-        this.router.navigate(["/", currentSlug, "confirmacion", "auto"]);
-      } else {
-        this.currentStep.set(3);
-      }
-    }
+  selectMethodManual() {
+    const weekStart = this.availabilityService.getWeekStart(new Date());
+    this.calendarInitialDate.set(weekStart);
+    this.loadAvailability(weekStart);
+    this.step.set(3);
   }
 
-  prevStep() {
-    if (this.currentStep() > 1) {
-      this.currentStep.update((s) => s - 1);
-    }
+  // ── Step 3 ────────────────────────────────────────────────
+  private loadAvailability(weekStart: Date) {
+    this.loadingAvailability.set(true);
+    const profId = this.formProfessionalId || undefined;
+    this.bookingService
+      .getAvailability(this.slug(), this.formatDateParam(weekStart), profId)
+      .subscribe({
+        next: (res) => {
+          this.busyPeriods.set(res.busy_periods);
+          this.loadingAvailability.set(false);
+        },
+        error: () => this.loadingAvailability.set(false),
+      });
   }
 
-  validateStep1(): boolean {
-    const errs: Record<string, string> = {};
-
-    if (!this.bookingData.clientName.trim()) {
-      errs["clientName"] = "booking.errors.nameRequired";
-    }
-
-    if (!this.bookingData.clientEmail.trim()) {
-      errs["clientEmail"] = "booking.errors.emailRequired";
-    } else if (!this.isValidEmail(this.bookingData.clientEmail)) {
-      errs["clientEmail"] = "booking.errors.emailInvalid";
-    }
-
-    if (!this.bookingData.clientPhone.trim()) {
-      errs["clientPhone"] = "booking.errors.phoneRequired";
-    }
-
-    this.errors.set(errs);
-    return Object.keys(errs).length === 0;
+  onWeekChanged(weekStart: Date) {
+    this.selectedSlot.set(null);
+    this.loadAvailability(weekStart);
   }
 
-  private isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  onSlotSelected(slot: TimeSlot) {
+    this.selectedSlot.set(slot);
+    this.submitError.set(null);
+  }
+
+  confirmBooking() {
+    const slot = this.selectedSlot();
+    const svc = this.service();
+    if (!slot || !svc) return;
+
+    this.submitting.set(true);
+    this.submitError.set(null);
+
+    const datetime = this.buildDatetime(slot);
+    this.bookingService
+      .createBooking({
+        slug: this.slug(),
+        service_id: svc.id,
+        professional_id: this.formProfessionalId || "",
+        client_name: this.formName,
+        client_email: this.formEmail,
+        client_phone: this.formPhone,
+        datetime,
+        turnstile_token: "",
+      })
+      .subscribe({
+        next: (res) => {
+          this.submitting.set(false);
+          if (res.success) {
+            this.bookingId.set(res.booking_id ?? null);
+            this.step.set(4);
+          } else {
+            this.submitError.set(res.message ?? "Error al crear la reserva");
+          }
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.submitError.set("No se pudo crear la reserva. Inténtalo de nuevo.");
+        },
+      });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  formatSlotDate(slot: TimeSlot): string {
+    return slot.datetime.toLocaleDateString("es-ES", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }) + " a las " + slot.startTime;
+  }
+
+  private formatDateParam(date: Date): string {
+    return date.toISOString().split("T")[0];
+  }
+
+  private buildDatetime(slot: TimeSlot): string {
+    const [hour, minute] = slot.startTime.split(":").map(Number);
+    const d = new Date(slot.datetime);
+    d.setHours(hour, minute, 0, 0);
+    return d.toISOString();
   }
 }
+

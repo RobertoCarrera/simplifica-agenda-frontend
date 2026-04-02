@@ -1,11 +1,11 @@
-// Simplify Agenda Frontend - Base Styles (Light Mode Only)
+// Simplify Agenda Frontend - Base Styles
 // Design tokens following the spec
 
 :root {
   // Colors - Light Mode
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: #dbeafe;
+  --color-primary: #10B981;
+  --color-primary-hover: #059669;
+  --color-primary-light: #d1fae5;
 
   --color-secondary: #64748b;
   --color-secondary-hover: #475569;
@@ -70,6 +70,10 @@
   --transition-fast: 150ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 300ms ease;
+
+  // Skeleton animation colors
+  --skeleton-from: #e2e8f0;
+  --skeleton-to: #f1f5f9;
 }
 
 // Reset & Base
@@ -334,4 +338,31 @@ button {
 }
 .text-success {
   color: var(--color-success);
+}
+
+// Dark Mode
+html.dark {
+  color-scheme: dark;
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #64748b;
+  --color-surface-hover: #334155;
+  --skeleton-from: #1e293b;
+  --skeleton-to: #334155;
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+  }
+
+  input,
+  select,
+  textarea {
+    background-color: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text-primary) !important;
+  }
 }
