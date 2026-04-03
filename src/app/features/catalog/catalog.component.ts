@@ -307,14 +307,14 @@ interface DurationGroup {
         svg {
           width: 1.25rem;
           height: 1.25rem;
-          color: white;
+          color: var(--color-primary-text);
           opacity: 0.85;
         }
       }
       .header-company-name {
         font-size: var(--font-size-base);
         font-weight: var(--font-weight-semibold);
-        color: white;
+        color: var(--color-primary-text);
         flex: 1;
       }
 
@@ -396,7 +396,7 @@ interface DurationGroup {
         &:hover { color: var(--color-text-primary); }
         &.active {
           background: var(--color-primary);
-          color: white;
+          color: var(--color-primary-text);
           box-shadow: var(--shadow-sm);
         }
       }
@@ -478,7 +478,7 @@ interface DurationGroup {
       .service-price {
         font-size: var(--font-size-xl);
         font-weight: var(--font-weight-bold);
-        color: var(--color-primary);
+        color: var(--color-secondary);
         flex-shrink: 0;
         white-space: nowrap;
       }
@@ -518,7 +518,7 @@ interface DurationGroup {
         font-weight: var(--font-weight-semibold);
         padding: var(--space-2) var(--space-4);
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
         border-radius: var(--radius-lg);
         text-decoration: none;
         transition: background var(--transition-fast);
@@ -587,10 +587,10 @@ interface DurationGroup {
         text-transform: uppercase;
         letter-spacing: 0.05em;
         padding: 2px var(--space-2);
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
+        background: var(--color-secondary-light);
+        border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
         border-radius: var(--radius-sm);
-        color: var(--color-text-secondary);
+        color: var(--color-secondary);
       }
 
       /* ── Professional detail ── */
@@ -717,7 +717,7 @@ interface DurationGroup {
       }
       .btn-primary {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
         &:hover { background: var(--color-primary-hover); }
       }
     `,

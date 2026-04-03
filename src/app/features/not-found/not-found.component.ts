@@ -77,7 +77,7 @@ import { TranslocoModule } from "@jsverse/transloco";
       .btn-primary {
         background: var(--color-primary);
         border: 1px solid var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .btn-primary:hover {

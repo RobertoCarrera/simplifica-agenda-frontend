@@ -347,7 +347,7 @@ import { applyBrandingColors } from "../../shared/branding.utils";
       .service-summary-price {
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-bold);
-        color: var(--color-primary);
+        color: var(--color-secondary);
       }
 
       /* ── Progress bar ── */
@@ -385,13 +385,13 @@ import { applyBrandingColors } from "../../shared/branding.utils";
         &.active .ps-circle {
           background: var(--color-primary);
           border-color: var(--color-primary);
-          color: white;
+          color: var(--color-primary-text);
         }
         &.active .ps-label { color: var(--color-primary); font-weight: var(--font-weight-medium); }
         &.done .ps-circle {
-          background: #10B981;
-          border-color: #10B981;
-          color: white;
+          background: var(--color-primary);
+          border-color: var(--color-primary);
+          color: var(--color-primary-text);
         }
       }
       .progress-line {
@@ -401,7 +401,7 @@ import { applyBrandingColors } from "../../shared/branding.utils";
         margin-bottom: 1.2rem;
         flex-shrink: 0;
         transition: background var(--transition-fast);
-        &.done { background: #10B981; }
+        &.done { background: var(--color-primary); }
       }
 
       /* ── Step card ── */
@@ -607,7 +607,7 @@ import { applyBrandingColors } from "../../shared/branding.utils";
       }
       .btn-primary {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
         &:hover:not(:disabled) { background: var(--color-primary-hover); }
       }
       .btn-ghost {

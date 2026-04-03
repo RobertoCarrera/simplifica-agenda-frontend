@@ -122,7 +122,7 @@ import {
 
           &.active {
             background: var(--color-primary);
-            color: white;
+            color: var(--color-primary-text);
           }
         }
       }
@@ -173,7 +173,7 @@ import {
       .initials {
         font-size: var(--font-size-2xl);
         font-weight: var(--font-weight-bold);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .prof-info {

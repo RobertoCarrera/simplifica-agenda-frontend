@@ -91,7 +91,7 @@ import { Professional } from "../../services/booking-public.service";
       .initials {
         font-size: var(--font-size-2xl);
         font-weight: var(--font-weight-bold);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .professional-info {
@@ -113,8 +113,9 @@ import { Professional } from "../../services/booking-public.service";
       }
 
       .service-tag {
-        background: var(--color-surface-hover);
-        color: var(--color-text-secondary);
+        background: var(--color-secondary-light);
+        color: var(--color-secondary);
+        border: 1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent);
         padding: var(--space-1) var(--space-3);
         border-radius: var(--radius-full);
         font-size: var(--font-size-xs);
@@ -150,7 +151,7 @@ import { Professional } from "../../services/booking-public.service";
       .btn-primary {
         background: var(--color-primary);
         border: 1px solid var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .btn-primary:hover {

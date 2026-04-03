@@ -56,7 +56,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 
       .nav-btn:hover {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
         border-color: var(--color-primary);
       }
 
@@ -86,7 +86,7 @@ import { TranslocoModule } from "@jsverse/transloco";
 
       .today-btn:hover {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       @media (max-width: 480px) {

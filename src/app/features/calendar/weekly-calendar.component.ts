@@ -113,7 +113,7 @@ import { BusyPeriod } from "../../services/booking-public.service";
 
       .nav-btn:hover {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
         border-color: var(--color-primary);
       }
 
@@ -166,7 +166,7 @@ import { BusyPeriod } from "../../services/booking-public.service";
 
       .today-badge {
         background: var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
         width: 32px;
         height: 32px;
         border-radius: 50%;

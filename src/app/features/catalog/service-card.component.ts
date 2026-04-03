@@ -68,7 +68,7 @@ import { Service } from "../../services/booking-public.service";
       .service-price {
         font-size: var(--font-size-xl);
         font-weight: var(--font-weight-bold);
-        color: var(--primary-color, var(--color-primary));
+        color: var(--color-secondary);
       }
 
       .service-meta {
@@ -114,7 +114,7 @@ import { Service } from "../../services/booking-public.service";
       .btn-primary {
         background: var(--primary-color, var(--color-primary));
         border: 1px solid var(--primary-color, var(--color-primary));
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .btn-primary:hover {

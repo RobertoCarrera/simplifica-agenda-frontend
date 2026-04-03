@@ -1,6 +1,6 @@
 /**
  * Applies company branding colors as CSS custom properties on :root.
- * Derives hover and light variants automatically via HSL manipulation.
+ * Derives hover, light, and accessible text-color variants automatically.
  */
 
 function hexToHsl(hex: string): [number, number, number] {
@@ -57,6 +57,20 @@ function isValidHex(color: string): boolean {
   return /^#[0-9a-fA-F]{6}$/.test(color);
 }
 
+/**
+ * Returns #ffffff or #1e293b based on WCAG relative luminance.
+ * Threshold: L > 0.35 → use dark text (light background), else white text.
+ */
+function getContrastText(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const toLinear = (c: number): number =>
+    c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  const L = 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+  return L > 0.35 ? '#1e293b' : '#ffffff';
+}
+
 export function applyBrandingColors(primary?: string | null, secondary?: string | null): void {
   const root = document.documentElement;
 
@@ -65,11 +79,14 @@ export function applyBrandingColors(primary?: string | null, secondary?: string 
     root.style.setProperty('--color-primary', primary);
     root.style.setProperty('--color-primary-hover', hslToHex(h, s, Math.max(0, l - 12)));
     root.style.setProperty('--color-primary-light', hslToHex(h, Math.min(s, 30), Math.min(97, l + 38)));
+    root.style.setProperty('--color-primary-text', getContrastText(primary));
   }
 
   if (secondary && isValidHex(secondary)) {
     const [h, s, l] = hexToHsl(secondary);
     root.style.setProperty('--color-secondary', secondary);
     root.style.setProperty('--color-secondary-hover', hslToHex(h, s, Math.max(0, l - 10)));
+    root.style.setProperty('--color-secondary-light', hslToHex(h, Math.min(s, 30), Math.min(97, l + 38)));
+    root.style.setProperty('--color-secondary-text', getContrastText(secondary));
   }
 }

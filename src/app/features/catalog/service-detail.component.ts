@@ -134,7 +134,7 @@ import {
       .price {
         font-size: var(--font-size-2xl);
         font-weight: var(--font-weight-bold);
-        color: var(--color-primary);
+        color: var(--color-secondary);
       }
 
       .duration {
@@ -211,7 +211,7 @@ import {
       .initials {
         font-size: var(--font-size-lg);
         font-weight: var(--font-weight-bold);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .prof-info {
@@ -251,7 +251,7 @@ import {
       .btn-primary {
         background: var(--color-primary);
         border: 1px solid var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .btn-primary:hover {

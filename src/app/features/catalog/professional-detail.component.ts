@@ -132,7 +132,7 @@ import {
       .initials {
         font-size: var(--font-size-4xl);
         font-weight: var(--font-weight-bold);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .prof-details {
@@ -231,7 +231,7 @@ import {
       .btn-primary {
         background: var(--color-primary);
         border: 1px solid var(--color-primary);
-        color: white;
+        color: var(--color-primary-text);
       }
 
       .btn-primary:hover {
