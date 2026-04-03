@@ -65,13 +65,14 @@ interface DurationGroup {
         </div>
       </header>
       <div class="catalog-page">
-        <header class="page-header">
-          <h1>{{ company()?.name }}</h1>
-          <p class="page-subtitle">Reserva tu cita online en pocos pasos</p>
-        </header>
+        <div class="catalog-hero">
+          <header class="page-header">
+            <h1>{{ company()?.name }}</h1>
+            <p class="page-subtitle">Reserva tu cita online en pocos pasos</p>
+          </header>
 
-        <!-- Journey tabs -->
-        <div class="journey-tabs">
+          <!-- Journey tabs -->
+          <div class="journey-tabs">
           <button
             class="journey-tab"
             [class.active]="activeTab() === 'services'"
@@ -105,6 +106,7 @@ interface DurationGroup {
             </svg>
             Por Duración
           </button>
+          </div>
         </div>
 
         <!-- ── VIEW: Por Servicio ─────────────────────────────────────── -->
@@ -363,6 +365,13 @@ interface DurationGroup {
         padding: var(--space-8) var(--space-4) var(--space-16);
       }
 
+      .catalog-hero {
+        background: linear-gradient(135deg, var(--color-primary-light) 0%, transparent 70%);
+        border-radius: 1.25rem;
+        padding: var(--space-8) var(--space-6) var(--space-4);
+        margin-bottom: var(--space-4);
+      }
+
       .page-header {
         margin-bottom: var(--space-6);
         h1 { font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-text-primary); margin: 0 0 var(--space-1); }
@@ -373,10 +382,10 @@ interface DurationGroup {
       .journey-tabs {
         display: flex;
         gap: var(--space-1);
-        background: var(--color-surface);
+        background: color-mix(in srgb, var(--color-primary-light) 55%, var(--color-background));
         border-radius: var(--radius-xl);
         padding: var(--space-1);
-        margin-bottom: var(--space-8);
+        margin-bottom: 0;
         overflow-x: auto;
       }
       .journey-tab {
