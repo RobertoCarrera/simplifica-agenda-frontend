@@ -155,9 +155,6 @@ interface DurationGroup {
                 }
                 <div>
                   <h2 class="prof-detail-name">{{ selectedProfessional()!.display_name }}</h2>
-                  <p class="prof-detail-meta">
-                    {{ (selectedProfessional()!.services?.length ?? 0) }} servicio{{ (selectedProfessional()!.services?.length ?? 0) !== 1 ? 's disponibles' : ' disponible' }}
-                  </p>
                   <p class="prof-detail-cta">Reserva directamente con este profesional</p>
                 </div>
               </div>
@@ -190,7 +187,6 @@ interface DurationGroup {
                     </div>
                     <div class="prof-card-info">
                       <p class="prof-card-name">{{ prof.display_name }}</p>
-                      <p class="prof-card-count">{{ (prof.services?.length ?? 0) }} servicio{{ (prof.services?.length ?? 0) !== 1 ? 's' : '' }}</p>
                       <div class="prof-card-tags">
                         @for (svc of (prof.services ?? []).slice(0, 2); track svc.id) {
                           <span class="prof-tag">{{ svc.name }}</span>
@@ -452,10 +448,11 @@ interface DurationGroup {
         flex-direction: column;
         gap: var(--space-4);
         transition: all var(--transition-fast);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         &:hover {
           border-color: var(--color-primary);
           transform: translateY(-2px);
-          box-shadow: var(--shadow-md);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
       }
       .service-card-top {
