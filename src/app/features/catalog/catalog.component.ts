@@ -366,6 +366,12 @@ interface DurationGroup {
         border-radius: 1.25rem;
         padding: var(--space-8) var(--space-6) var(--space-4);
         margin-bottom: var(--space-4);
+        @media (prefers-color-scheme: dark) {
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          h1 { color: var(--color-primary-text); }
+          .page-subtitle { color: var(--color-text-primary); opacity: 0.9; }
+        }
       }
 
       .page-header {
