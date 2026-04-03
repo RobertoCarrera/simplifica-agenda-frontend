@@ -61,18 +61,6 @@ interface DurationGroup {
             </svg>
           </div>
           <span class="header-company-name">{{ company()?.name }}</span>
-          <button class="theme-toggle-btn" (click)="toggleTheme()"
-            [title]="isDark() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'">
-            @if (isDark()) {
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
-              </svg>
-            } @else {
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
-              </svg>
-            }
-          </button>
         </div>
       </header>
       <div class="catalog-page">
@@ -153,8 +141,8 @@ interface DurationGroup {
                 Volver al equipo
               </button>
               <div class="prof-detail-header">
-                @if (selectedProfessional()?.avatar_url) {
-                  <img [src]="selectedProfessional()!.avatar_url" [alt]="selectedProfessional()!.display_name" class="prof-detail-avatar" />
+                @if (selectedProfessional()?.avatar_url && !failedAvatarIds().has(selectedProfessional()!.id)) {
+                  <img [src]="selectedProfessional()!.avatar_url" [alt]="selectedProfessional()!.display_name" class="prof-detail-avatar" (error)="onAvatarError(selectedProfessional()!.id)" />
                 } @else {
                   <div class="prof-detail-avatar-placeholder"
                     [style.background]="getAvatarColor(selectedProfessional()!.display_name).bg"
@@ -187,8 +175,8 @@ interface DurationGroup {
                 @for (prof of professionals(); track prof.id) {
                   <div class="prof-card" (click)="showProfessionalDetail(prof)">
                     <div class="prof-card-avatar-wrap">
-                      @if (prof.avatar_url) {
-                        <img [src]="prof.avatar_url" [alt]="prof.display_name" class="prof-card-avatar-img" />
+                      @if (prof.avatar_url && !failedAvatarIds().has(prof.id)) {
+                        <img [src]="prof.avatar_url" [alt]="prof.display_name" class="prof-card-avatar-img" (error)="onAvatarError(prof.id)" />
                       } @else {
                         <div class="prof-card-avatar-initials"
                           [style.background]="getAvatarColor(prof.display_name).bg"
@@ -261,13 +249,17 @@ interface DurationGroup {
           <div class="service-meta">
             <span class="duration-badge">{{ svc.duration_minutes }} min</span>
             <div class="prof-chips">
-              @for (p of (svc.professionals ?? []).slice(0, 3); track p.id) {
-                <span class="prof-chip"
-                  [style.background]="getAvatarColor(p.display_name).bg"
+              @for (p of (svc.professionals ?? []).filter(p => !!p?.display_name).slice(0, 3); track p.id) {
+                <div class="prof-chip"
+                  [style.background]="p.avatar_url && !failedAvatarIds().has(p.id) ? 'transparent' : getAvatarColor(p.display_name).bg"
                   [style.color]="getAvatarColor(p.display_name).fg"
                   [title]="p.display_name">
-                  {{ getInitials(p.display_name) }}
-                </span>
+                  @if (p.avatar_url && !failedAvatarIds().has(p.id)) {
+                    <img [src]="p.avatar_url" [alt]="p.display_name" class="prof-chip-img" (error)="onAvatarError(p.id)" />
+                  } @else {
+                    {{ getInitials(p.display_name) }}
+                  }
+                </div>
               }
             </div>
           </div>
@@ -323,25 +315,6 @@ interface DurationGroup {
         font-weight: var(--font-weight-semibold);
         color: white;
         flex: 1;
-      }
-      .theme-toggle-btn {
-        flex-shrink: 0;
-        padding: 0.375rem;
-        border-radius: 0.5rem;
-        color: rgba(255, 255, 255, 0.75);
-        transition: all var(--transition-fast);
-        background: none;
-        border: none;
-        cursor: pointer;
-        &:hover {
-          color: white;
-          background: rgba(255, 255, 255, 0.1);
-        }
-        svg {
-          width: 1rem;
-          height: 1rem;
-          display: block;
-        }
       }
 
       /* ── Loading skeleton ── */
@@ -533,9 +506,12 @@ interface DurationGroup {
         width: 1.5rem;
         height: 1.5rem;
         border-radius: 50%;
+        overflow: hidden;
         font-size: 0.6rem;
         font-weight: var(--font-weight-bold);
+        flex-shrink: 0;
       }
+      .prof-chip-img { width: 100%; height: 100%; object-fit: cover; display: block; }
       .btn-reservar {
         font-size: var(--font-size-sm);
         font-weight: var(--font-weight-semibold);
@@ -756,12 +732,13 @@ export class CatalogComponent implements OnInit {
   professionals = signal<Professional[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
-  isDark = signal(false);
 
   activeTab = signal<Journey>("services");
   sortOrder = signal<SortOrder>("default");
   sortOrderValue: SortOrder = "default";
   selectedProfessional = signal<Professional | null>(null);
+  failedAvatarIds = signal<Set<string>>(new Set());
+  private deepLinkProfessionalId: string | null = null;
 
   readonly durationGroups: DurationGroup[] = [
     { label: "Sesiones rápidas",  desc: "30 min o menos",  icon: "⚡", min: 0,  max: 30,       color: "#10B981" },
@@ -786,7 +763,12 @@ export class CatalogComponent implements OnInit {
     );
   }
 
+  onAvatarError(id: string): void {
+    this.failedAvatarIds.update(s => new Set([...s, id]));
+  }
+
   getInitials(name: string): string {
+    if (!name) return '';
     return name
       .split(" ")
       .map((n) => n[0])
@@ -803,6 +785,7 @@ export class CatalogComponent implements OnInit {
       { bg: "#fef3c7", fg: "#b45309" },
       { bg: "#ede9fe", fg: "#6d28d9" },
     ];
+    if (!name) return palette[0];
     const idx = (name.charCodeAt(0) || 0) % palette.length;
     return palette[idx];
   }
@@ -825,21 +808,19 @@ export class CatalogComponent implements OnInit {
     if (slug) this.loadData(slug);
   }
 
-  toggleTheme() {
-    const next = !this.isDark();
-    this.isDark.set(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
-
   ngOnInit() {
-    // Init dark mode from localStorage or system preference
-    const saved = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    if (saved === "dark" || (!saved && prefersDark)) {
-      this.isDark.set(true);
-      document.documentElement.classList.add("dark");
-    }
+    // Apply system color-scheme preference and react to changes
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    document.documentElement.classList.toggle("dark", mq?.matches ?? false);
+    mq?.addEventListener("change", (e) => {
+      document.documentElement.classList.toggle("dark", e.matches);
+    });
+
+    // Capture professional_id deep-link query param before data load
+    this.deepLinkProfessionalId =
+      this.route.snapshot.queryParamMap.get("professional_id") ??
+      this.route.parent?.snapshot.queryParamMap.get("professional_id") ??
+      null;
 
     // Try parent route first (nested under /:slug)
     const parentParams = this.route.parent?.snapshot.paramMap;
@@ -866,7 +847,39 @@ export class CatalogComponent implements OnInit {
       next: (res) => {
         this.company.set(res.company);
         this.services.set(res.services);
-        this.professionals.set(res.professionals);
+
+        // Build professionals enriched with their services.
+        // The top-level professionals list may be empty (older deployed function),
+        // so we also extract professionals from the professional_services join
+        // embedded within each service and merge both sources.
+        const topLevel = res.professionals ?? [];
+        const profMap = new Map<string, Professional>();
+        for (const svc of (res.services ?? [])) {
+          for (const p of (svc.professionals ?? []).filter((p: Professional) => p?.id && p?.display_name)) {
+            if (!profMap.has(p.id)) {
+              const full = topLevel.find((fp) => fp.id === p.id);
+              profMap.set(p.id, { ...(full ?? p), services: [] });
+            }
+            profMap.get(p.id)!.services!.push(svc);
+          }
+        }
+        // Prefer the enriched set; fall back to the raw top-level list when
+        // no service has professionals attached.
+        const professionals = profMap.size > 0
+          ? Array.from(profMap.values())
+          : topLevel;
+        this.professionals.set(professionals);
+
+        // Deep-link: if a professional_id was in the URL, auto-select them
+        if (this.deepLinkProfessionalId) {
+          const target = professionals.find(p => p.id === this.deepLinkProfessionalId);
+          if (target) {
+            this.activeTab.set('professionals');
+            this.selectedProfessional.set(target);
+          }
+          this.deepLinkProfessionalId = null;
+        }
+
         this.loading.set(false);
       },
       error: (err) => {

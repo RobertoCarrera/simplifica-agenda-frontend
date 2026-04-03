@@ -12,7 +12,7 @@ export const companyResolver: ResolveFn<Company | null> = (route) => {
   const slug = route.paramMap.get("slug");
 
   if (!slug) {
-    router.navigate(["/"]);
+    router.navigate(["/404"]);
     return of(null);
   }
 
@@ -21,8 +21,7 @@ export const companyResolver: ResolveFn<Company | null> = (route) => {
     map((response) => response.company),
     catchError((err) => {
       console.error("Error resolving company:", err);
-      // Redirect to home if company not found
-      router.navigate(["/"]);
+      router.navigate(["/404"]);
       return of(null);
     }),
   );

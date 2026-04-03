@@ -261,7 +261,7 @@ export class ProfessionalsComponent implements OnInit {
 
     this.bookingService.getServices(slug).subscribe({
       next: (response) => {
-        this.professionals.set(response.professionals);
+        this.professionals.set(response.professionals ?? []);
         this.loading.set(false);
       },
       error: (err) => {

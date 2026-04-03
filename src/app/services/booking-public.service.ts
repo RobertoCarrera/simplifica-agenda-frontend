@@ -54,7 +54,7 @@ export interface AvailabilityResponse {
 export interface CreateBookingPayload {
   slug: string;
   service_id: string;
-  professional_id: string;
+  professional_id?: string;
   client_name: string;
   client_email: string;
   client_phone: string;
@@ -86,6 +86,20 @@ export class BookingPublicService {
     return this.http
       .get<CompanyServicesResponse>(`${this.baseUrl}/services`, { params })
       .pipe(
+        map((res) => ({
+          ...res,
+          services: (res.services ?? []).map((s) => ({
+            ...s,
+            professionals: (s.professionals ?? []).map((p: any) => ({
+              ...p,
+              display_name: p.display_name || p.name,
+            })),
+          })),
+          professionals: (res.professionals ?? []).map((p: any) => ({
+            ...p,
+            display_name: p.display_name || p.name,
+          })),
+        })),
         catchError((err) => {
           console.error("Error fetching services:", err);
           return throwError(
@@ -147,6 +161,13 @@ export class BookingPublicService {
    */
   getService(id: string): Observable<Service> {
     return this.http.get<Service>(`${this.baseUrl}/services/${id}`).pipe(
+      map((s: any) => ({
+        ...s,
+        professionals: (s.professionals ?? []).map((p: any) => ({
+          ...p,
+          display_name: p.display_name || p.name,
+        })),
+      })),
       catchError((err) => {
         console.error("Error fetching service:", err);
         return throwError(() => new Error("Failed to load service"));
@@ -162,6 +183,10 @@ export class BookingPublicService {
     return this.http
       .get<Professional>(`${this.baseUrl}/professionals/${id}`)
       .pipe(
+        map((p: any) => ({
+          ...p,
+          display_name: p.display_name || p.name,
+        })),
         catchError((err) => {
           console.error("Error fetching professional:", err);
           return throwError(() => new Error("Failed to load professional"));

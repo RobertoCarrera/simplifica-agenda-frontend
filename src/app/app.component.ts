@@ -1,15 +1,14 @@
-import { Component } from "@angular/core";
+import { Component, inject } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
-import { HeaderComponent } from "./shared/ui/header.component";
 import { FooterComponent } from "./shared/ui/footer.component";
+import { TranslocoService } from "@jsverse/transloco";
 
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent],
+  imports: [RouterOutlet, FooterComponent],
   template: `
     <div class="app-layout">
-      <app-header />
       <main class="app-container">
         <router-outlet></router-outlet>
       </main>
@@ -37,4 +36,13 @@ import { FooterComponent } from "./shared/ui/footer.component";
     `,
   ],
 })
-export class AppComponent {}
+export class AppComponent {
+  constructor() {
+    const transloco = inject(TranslocoService);
+    const available = ["es", "ca"];
+    const browserLang = (navigator.languages?.[0] ?? navigator.language ?? "es")
+      .slice(0, 2)
+      .toLowerCase();
+    transloco.setActiveLang(available.includes(browserLang) ? browserLang : "es");
+  }
+}

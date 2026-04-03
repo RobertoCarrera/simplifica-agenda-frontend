@@ -10,6 +10,7 @@ import {
   BusyPeriod,
 } from "../../services/booking-public.service";
 import { AvailabilityService } from "../../services/availability.service";
+import { TurnstileService } from "../../services/turnstile.service";
 import { WeeklyCalendarComponent } from "../calendar/weekly-calendar.component";
 import { TimeSlot } from "../calendar/time-slot.component";
 
@@ -85,13 +86,57 @@ import { TimeSlot } from "../calendar/time-slot.component";
 
             @if (professionals().length > 0) {
               <div class="form-group">
-                <label for="profSelect">Profesional</label>
-                <select id="profSelect" [(ngModel)]="formProfessionalId" class="form-control">
-                  <option value="">Sin preferencia</option>
+                <label>Profesional</label>
+                <div class="prof-selector">
+                  <!-- Sin preferencia -->
+                  <button type="button"
+                    class="prof-option"
+                    [class.prof-option--selected]="formProfessionalId === ''"
+                    (click)="formProfessionalId = ''">
+                    <div class="prof-option-avatar prof-option-avatar--any">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                    </div>
+                    <div class="prof-option-info">
+                      <span class="prof-option-name">Sin preferencia</span>
+                      <span class="prof-option-title">Cualquier profesional</span>
+                    </div>
+                    @if (formProfessionalId === '') {
+                      <svg class="prof-option-check" viewBox="0 0 24 24" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/>
+                      </svg>
+                    }
+                  </button>
+                  <!-- Profesionales -->
                   @for (p of professionals(); track p.id) {
-                    <option [value]="p.id">{{ p.display_name }}</option>
+                    <button type="button"
+                      class="prof-option"
+                      [class.prof-option--selected]="formProfessionalId === p.id"
+                      (click)="formProfessionalId = p.id">
+                      @if (p.avatar_url && !failedAvatarIds().has(p.id)) {
+                        <img class="prof-option-avatar" [src]="p.avatar_url" [alt]="p.display_name" (error)="onAvatarError(p.id)" />
+                      } @else {
+                        <div class="prof-option-avatar prof-option-avatar--initials"
+                          [style.background]="getAvatarColor(p.display_name).bg"
+                          [style.color]="getAvatarColor(p.display_name).fg">
+                          {{ getInitials(p.display_name) }}
+                        </div>
+                      }
+                      <div class="prof-option-info">
+                        <span class="prof-option-name">{{ p.display_name }}</span>
+                        @if (p.title) {
+                          <span class="prof-option-title">{{ p.title }}</span>
+                        }
+                      </div>
+                      @if (formProfessionalId === p.id) {
+                        <svg class="prof-option-check" viewBox="0 0 24 24" fill="currentColor">
+                          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/>
+                        </svg>
+                      }
+                    </button>
                   }
-                </select>
+                </div>
               </div>
             }
 
@@ -201,6 +246,8 @@ import { TimeSlot } from "../calendar/time-slot.component";
                 (weekChanged)="onWeekChanged($event)"
               />
             }
+
+            <div id="cf-turnstile"></div>
 
             <div class="step-actions">
               <button class="btn btn-ghost" (click)="step.set(2)">← Atrás</button>
@@ -574,6 +621,87 @@ import { TimeSlot } from "../calendar/time-slot.component";
         &:hover { border-color: var(--color-primary); color: var(--color-primary); }
       }
       .btn-full { width: 100%; }
+
+      /* ── Professional selector ── */
+      .prof-selector {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+      .prof-option {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        border: 1.5px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        background: var(--color-background);
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+        transition: all var(--transition-fast);
+        &:hover {
+          border-color: var(--color-primary);
+          background: color-mix(in srgb, var(--color-primary) 4%, transparent);
+        }
+        &.prof-option--selected {
+          border-color: var(--color-primary);
+          background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+        }
+      }
+      .prof-option-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .prof-option-avatar--initials {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-bold);
+      }
+      .prof-option-avatar--any {
+        background: var(--color-surface, #f1f5f9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        svg {
+          width: 1.25rem;
+          height: 1.25rem;
+          color: var(--color-text-muted);
+        }
+      }
+      .prof-option-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+      .prof-option-name {
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .prof-option-title {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .prof-option-check {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+        color: var(--color-primary);
+      }
     `,
   ],
 })
@@ -582,6 +710,7 @@ export class BookingWizardComponent implements OnInit {
   private router = inject(Router);
   private bookingService = inject(BookingPublicService);
   private availabilityService = inject(AvailabilityService);
+  private turnstileService = inject(TurnstileService);
 
   // Route state
   slug = signal<string>("");
@@ -616,6 +745,7 @@ export class BookingWizardComponent implements OnInit {
   submitting = signal(false);
   submitError = signal<string | null>(null);
   bookingId = signal<string | null>(null);
+  failedAvatarIds = signal<Set<string>>(new Set());
 
   ngOnInit() {
     // Slug from parent route (:slug)
@@ -638,7 +768,7 @@ export class BookingWizardComponent implements OnInit {
         next: (res) => {
           const svc = res.services.find((s) => s.id === svcId) ?? null;
           this.service.set(svc);
-          this.professionals.set(res.professionals);
+          this.professionals.set((res.professionals ?? []).filter(p => !!p.display_name));
           this.loadingService.set(false);
         },
         error: () => this.loadingService.set(false),
@@ -738,7 +868,7 @@ export class BookingWizardComponent implements OnInit {
     this.submitError.set(null);
   }
 
-  confirmBooking() {
+  async confirmBooking() {
     const slot = this.selectedSlot();
     const svc = this.service();
     if (!slot || !svc) return;
@@ -746,17 +876,29 @@ export class BookingWizardComponent implements OnInit {
     this.submitting.set(true);
     this.submitError.set(null);
 
+    let turnstile_token: string;
+    try {
+      await this.turnstileService.loadScript();
+      const container = document.getElementById('cf-turnstile');
+      if (container) container.innerHTML = '';
+      turnstile_token = await this.turnstileService.render('cf-turnstile');
+    } catch {
+      this.submitting.set(false);
+      this.submitError.set('Error en la verificación de seguridad. Inténtalo de nuevo.');
+      return;
+    }
+
     const datetime = this.buildDatetime(slot);
     this.bookingService
       .createBooking({
         slug: this.slug(),
         service_id: svc.id,
-        professional_id: this.formProfessionalId || "",
+        professional_id: this.formProfessionalId || undefined,
         client_name: this.formName,
         client_email: this.formEmail,
         client_phone: this.formPhone,
         datetime,
-        turnstile_token: "",
+        turnstile_token,
       })
       .subscribe({
         next: (res) => {
@@ -776,6 +918,33 @@ export class BookingWizardComponent implements OnInit {
   }
 
   // ── Helpers ───────────────────────────────────────────────
+  onAvatarError(id: string): void {
+    this.failedAvatarIds.update(s => new Set([...s, id]));
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
+  getAvatarColor(name: string): { bg: string; fg: string } {
+    const palette = [
+      { bg: '#dbeafe', fg: '#1d4ed8' },
+      { bg: '#dcfce7', fg: '#15803d' },
+      { bg: '#fce7f3', fg: '#9d174d' },
+      { bg: '#fef3c7', fg: '#b45309' },
+      { bg: '#ede9fe', fg: '#6d28d9' },
+    ];
+    if (!name) return palette[0];
+    const idx = (name.charCodeAt(0) || 0) % palette.length;
+    return palette[idx];
+  }
+
   formatSlotDate(slot: TimeSlot): string {
     return slot.datetime.toLocaleDateString("es-ES", {
       weekday: "long",
