@@ -10,6 +10,7 @@ import {
   Professional,
 } from "../../services/booking-public.service";
 import { applyBrandingColors } from "../../shared/branding.utils";
+import { StripHtmlPipe } from "../../shared/pipes/strip-html.pipe";
 
 type Journey = "services" | "professionals" | "duration";
 type SortOrder = "default" | "price-asc" | "price-desc" | "duration-asc" | "name";
@@ -26,7 +27,7 @@ interface DurationGroup {
 @Component({
   selector: "app-catalog",
   standalone: true,
-  imports: [RouterLink, TranslocoModule, CommonModule, FormsModule],
+  imports: [RouterLink, TranslocoModule, CommonModule, FormsModule, StripHtmlPipe],
   template: `
     @if (loading()) {
       <div class="catalog-loading">
@@ -238,7 +239,7 @@ interface DurationGroup {
           <div class="service-card-info">
             <h3 class="service-name">{{ svc.name }}</h3>
             @if (svc.description) {
-              <p class="service-desc">{{ svc.description }}</p>
+              <p class="service-desc">{{ svc.description | stripHtml }}</p>
             }
           </div>
           @if (svc.price != null) {
