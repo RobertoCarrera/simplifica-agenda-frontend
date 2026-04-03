@@ -382,9 +382,8 @@ interface DurationGroup {
       .journey-tabs {
         display: flex;
         gap: var(--space-1);
-        background: color-mix(in srgb, var(--color-secondary-light) 40%, var(--color-background));
-        border-radius: var(--radius-xl);
-        padding: var(--space-1);
+        background: transparent;
+        padding: 0;
         margin-bottom: 0;
         overflow-x: auto;
       }
@@ -394,7 +393,7 @@ interface DurationGroup {
         gap: var(--space-2);
         padding: var(--space-2) var(--space-5);
         border-radius: var(--radius-lg);
-        border: none;
+        border: 1px solid transparent;
         background: transparent;
         color: var(--color-text-secondary);
         font-size: var(--font-size-sm);
@@ -402,9 +401,13 @@ interface DurationGroup {
         cursor: pointer;
         white-space: nowrap;
         transition: all var(--transition-fast);
-        &:hover { color: var(--color-text-primary); }
+        &:hover { 
+          color: var(--color-text-primary);
+          background: rgba(255, 255, 255, 0.5);
+        }
         &.active {
           background: var(--color-primary);
+          border-color: var(--color-primary);
           color: var(--color-primary-text);
           box-shadow: var(--shadow-sm);
         }
