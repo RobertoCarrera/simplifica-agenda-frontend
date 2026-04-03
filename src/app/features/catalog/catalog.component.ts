@@ -366,7 +366,7 @@ interface DurationGroup {
       }
 
       .catalog-hero {
-        background: linear-gradient(135deg, var(--color-primary-light) 0%, transparent 70%);
+        background: linear-gradient(135deg, var(--color-secondary-light) 0%, transparent 80%);
         border-radius: 1.25rem;
         padding: var(--space-8) var(--space-6) var(--space-4);
         margin-bottom: var(--space-4);
@@ -382,7 +382,7 @@ interface DurationGroup {
       .journey-tabs {
         display: flex;
         gap: var(--space-1);
-        background: color-mix(in srgb, var(--color-primary-light) 55%, var(--color-background));
+        background: color-mix(in srgb, var(--color-secondary-light) 40%, var(--color-background));
         border-radius: var(--radius-xl);
         padding: var(--space-1);
         margin-bottom: 0;
