@@ -9,6 +9,7 @@ import {
   Service,
   Professional,
 } from "../../services/booking-public.service";
+import { applyBrandingColors } from "../../shared/branding.utils";
 
 type Journey = "services" | "professionals" | "duration";
 type SortOrder = "default" | "price-asc" | "price-desc" | "duration-asc" | "name";
@@ -846,6 +847,7 @@ export class CatalogComponent implements OnInit {
     this.bookingService.getServices(slug).subscribe({
       next: (res) => {
         this.company.set(res.company);
+        applyBrandingColors(res.company?.primary_color, res.company?.secondary_color);
         this.services.set(res.services);
 
         // Build professionals enriched with their services.

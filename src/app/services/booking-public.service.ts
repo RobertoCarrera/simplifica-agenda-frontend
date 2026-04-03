@@ -13,6 +13,7 @@ export interface Company {
   name: string;
   logo_url?: string;
   primary_color?: string;
+  secondary_color?: string;
 }
 
 export interface Service {

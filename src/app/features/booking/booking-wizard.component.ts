@@ -13,6 +13,7 @@ import { AvailabilityService } from "../../services/availability.service";
 import { TurnstileService } from "../../services/turnstile.service";
 import { WeeklyCalendarComponent } from "../calendar/weekly-calendar.component";
 import { TimeSlot } from "../calendar/time-slot.component";
+import { applyBrandingColors } from "../../shared/branding.utils";
 
 @Component({
   selector: "app-booking-wizard",
@@ -769,6 +770,7 @@ export class BookingWizardComponent implements OnInit {
           const svc = res.services.find((s) => s.id === svcId) ?? null;
           this.service.set(svc);
           this.professionals.set((res.professionals ?? []).filter(p => !!p.display_name));
+          applyBrandingColors(res.company?.primary_color, res.company?.secondary_color);
           this.loadingService.set(false);
         },
         error: () => this.loadingService.set(false),
