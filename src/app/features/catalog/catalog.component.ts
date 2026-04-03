@@ -53,21 +53,22 @@ interface DurationGroup {
         </button>
       </div>
     } @else {
-      <header class="header-bar">
-        <div class="header-inner">
-          <div class="header-logo-placeholder">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-          </div>
-          <span class="header-company-name">{{ company()?.name }}</span>
-        </div>
-      </header>
       <div class="catalog-page">
         <div class="catalog-hero">
           <header class="page-header">
-            <h1>{{ company()?.name }}</h1>
+            <div class="page-header-identity">
+              @if (company()?.logo_url) {
+                <img class="company-logo" [src]="company()!.logo_url" [alt]="company()?.name" />
+              } @else {
+                <div class="company-logo-placeholder">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+              }
+              <h1>{{ company()?.name }}</h1>
+            </div>
             <p class="page-subtitle">Reserva tu cita online en pocos pasos</p>
           </header>
 
@@ -277,43 +278,39 @@ interface DurationGroup {
         display: block;
       }
 
-      /* ── Branded header bar ── */
-      .header-bar {
-        background: var(--color-primary);
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-      }
-      .header-inner {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0.75rem 1rem;
+      /* ── Company identity inside hero ── */
+      .page-header-identity {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.875rem;
+        margin-bottom: 0.25rem;
+        h1 { margin: 0; }
       }
-      .header-logo-placeholder {
-        width: 2.25rem;
-        height: 2.25rem;
-        border-radius: 0.5rem;
-        background: rgba(255, 255, 255, 0.2);
+      .company-logo {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.625rem;
+        object-fit: contain;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.25rem;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        flex-shrink: 0;
+      }
+      .company-logo-placeholder {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.625rem;
+        background: rgba(255, 255, 255, 0.25);
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
         svg {
-          width: 1.25rem;
-          height: 1.25rem;
-          color: var(--color-primary-text);
-          opacity: 0.85;
+          width: 1.5rem;
+          height: 1.5rem;
+          color: var(--color-primary);
+          opacity: 0.7;
         }
-      }
-      .header-company-name {
-        font-size: var(--font-size-base);
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-primary-text);
-        flex: 1;
       }
 
       /* ── Loading skeleton ── */
