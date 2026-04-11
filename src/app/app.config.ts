@@ -1,8 +1,7 @@
-import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from "@angular/core";
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { provideHttpClient, withFetch, withInterceptors } from "@angular/common/http";
 import { provideAnimations } from "@angular/platform-browser/animations";
-import { provideServiceWorker } from "@angular/service-worker";
 import { bookingAuthInterceptor } from "./interceptors/booking-auth.interceptor";
 import { provideTransloco } from "@jsverse/transloco";
 import { TranslocoHttpLoader } from "./transloco-http.loader";
@@ -15,10 +14,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withFetch(), withInterceptors([bookingAuthInterceptor])),
     provideAnimations(),
-    provideServiceWorker("ngsw-config.json", {
-      enabled: !isDevMode(),
-      registrationStrategy: "registerWhenStable:complete",
-    }),
+    // TODO: Re-enable PWA service worker after installing @angular/service-worker
+    // import { provideServiceWorker } from "@angular/service-worker";
+    // provideServiceWorker("ngsw-config.json", { enabled: !isDevMode(), registrationStrategy: "registerWhenStable:complete" }),
     provideTransloco({
       config: {
         defaultLang: "es",
