@@ -70,6 +70,10 @@ export class AvailabilityService {
     const totalSlots =
       (this.WORKING_HOURS.end - this.WORKING_HOURS.start) * slotsPerHour;
 
+    const sortedBusyPeriods = [...busyPeriods].sort(
+      (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+    );
+
     for (let i = 0; i < totalSlots; i++) {
       const hour =
         this.WORKING_HOURS.start +
@@ -97,7 +101,7 @@ export class AvailabilityService {
       // Note: A slot is occupied if it overlaps with any busy period
       const isAvailable = !this.isSlotOccupied(
         slotDate,
-        busyPeriods,
+        sortedBusyPeriods,
         serviceDuration,
       );
 
@@ -133,6 +137,7 @@ export class AvailabilityService {
       const periodStart = new Date(period.start);
       const periodEnd = new Date(period.end);
 
+      if (periodStart >= slotEnd) break; // Sorted by start; no further overlap possible
       // Check if slot overlaps with busy period
       if (slotStart < periodEnd && slotEnd > periodStart) {
         return true;

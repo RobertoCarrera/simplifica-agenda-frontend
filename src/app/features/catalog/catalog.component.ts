@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import { Component, OnInit, inject, signal, computed, DestroyRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 import { CommonModule } from "@angular/common";
@@ -73,41 +74,39 @@ interface DurationGroup {
             <p class="page-subtitle">Reserva tu cita online en pocos pasos</p>
           </header>
 
-          <!-- Journey tabs -->
+          <!-- Journey tabs — only show filters configured in company settings -->
           <div class="journey-tabs">
-          <button
-            class="journey-tab"
-            [class.active]="activeTab() === 'services'"
-            (click)="setTab('services')"
-          >
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            Por Servicio
-          </button>
-          <button
-            class="journey-tab"
-            [class.active]="activeTab() === 'professionals'"
-            (click)="setTab('professionals')"
-          >
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            Por Profesional
-          </button>
-          <button
-            class="journey-tab"
-            [class.active]="activeTab() === 'duration'"
-            (click)="setTab('duration')"
-          >
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Por Duración
-          </button>
+            @for (tab of ['services', 'professionals', 'duration']; track tab) {
+              @if (enabledTabs().includes($any(tab))) {
+                <button
+                  class="journey-tab"
+                  [class.active]="activeTab() === $any(tab)"
+                  (click)="setTab($any(tab))"
+                >
+                  @if (tab === 'services') {
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Por Servicio
+                  }
+                  @if (tab === 'professionals') {
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Por Profesional
+                  }
+                  @if (tab === 'duration') {
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Por Duración
+                  }
+                </button>
+              }
+            }
           </div>
         </div>
 
@@ -739,6 +738,7 @@ interface DurationGroup {
 export class CatalogComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private bookingService = inject(BookingPublicService);
+  private destroyRef = inject(DestroyRef);
 
   slug = signal<string>("");
   company = signal<Company | null>(null);
@@ -753,6 +753,12 @@ export class CatalogComponent implements OnInit {
   selectedProfessional = signal<Professional | null>(null);
   failedAvatarIds = signal<Set<string>>(new Set());
   private deepLinkProfessionalId: string | null = null;
+
+  // Derived from company settings, defaults to all 3 if not configured
+  enabledTabs = computed<Journey[]>(() => {
+    const filters = this.company()?.enabled_filters ?? ['services', 'professionals', 'duration'];
+    return filters as Journey[];
+  });
 
   readonly durationGroups: DurationGroup[] = [
     { label: "Sesiones rápidas",  desc: "30 min o menos",  icon: "⚡", min: 0,  max: 30,       color: "#10B981" },
@@ -805,7 +811,13 @@ export class CatalogComponent implements OnInit {
   }
 
   setTab(tab: Journey) {
-    this.activeTab.set(tab);
+    if (this.enabledTabs().includes(tab)) {
+      this.activeTab.set(tab);
+    } else {
+      // Fallback to first enabled tab if current is no longer allowed
+      const first = this.enabledTabs()[0];
+      this.activeTab.set(first ?? 'services');
+    }
     this.selectedProfessional.set(null);
   }
 
@@ -845,7 +857,7 @@ export class CatalogComponent implements OnInit {
       return;
     }
     // Fallback: own params
-    this.route.paramMap.subscribe((params) => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const s = params.get("slug");
       if (s) {
         this.slug.set(s);
@@ -886,9 +898,10 @@ export class CatalogComponent implements OnInit {
         this.professionals.set(professionals);
 
         // Deep-link: if a professional_id was in the URL, auto-select them
+        // Only switch to professionals tab if it's in the enabled filters
         if (this.deepLinkProfessionalId) {
           const target = professionals.find(p => p.id === this.deepLinkProfessionalId);
-          if (target) {
+          if (target && this.enabledTabs().includes('professionals')) {
             this.activeTab.set('professionals');
             this.selectedProfessional.set(target);
           }

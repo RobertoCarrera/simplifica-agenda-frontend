@@ -1,8 +1,19 @@
-import { Injectable, inject } from "@angular/core";
+import { Injectable, inject, InjectionToken } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable, catchError, throwError } from "rxjs";
 import { map } from "rxjs/operators";
 import { environment } from "../../environments/environment";
+
+// ============================================================================
+// Injection Token for BFF Base URL (allows test override)
+// ============================================================================
+
+export const BFF_BASE_URL = new InjectionToken<string>(
+  "bff.baseUrl",
+  {
+    factory: () => environment.bffBaseUrl,
+  },
+);
 
 // ============================================================================
 // Interfaces
@@ -14,6 +25,7 @@ export interface Company {
   logo_url?: string;
   primary_color?: string;
   secondary_color?: string;
+  enabled_filters?: string[];
 }
 
 export interface Service {
@@ -76,7 +88,7 @@ export interface BookingResponse {
 @Injectable({ providedIn: "root" })
 export class BookingPublicService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.bffBaseUrl;
+  private readonly baseUrl = inject(BFF_BASE_URL);
 
   /**
    * Fetch company services and professionals by slug

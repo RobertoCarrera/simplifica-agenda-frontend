@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed, inject } from "@angular/core";
+import { Component, OnInit, signal, computed, inject, DestroyRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { TranslocoModule } from "@jsverse/transloco";
@@ -712,6 +713,7 @@ export class BookingWizardComponent implements OnInit {
   private bookingService = inject(BookingPublicService);
   private availabilityService = inject(AvailabilityService);
   private turnstileService = inject(TurnstileService);
+  private destroyRef = inject(DestroyRef);
 
   // Route state
   slug = signal<string>("");
@@ -741,6 +743,7 @@ export class BookingWizardComponent implements OnInit {
   // Auto-booking search
   autoSearching = signal(false);
   autoError = signal<string | null>(null);
+  private autoSearchInProgress = false;
 
   // Submission
   submitting = signal(false);
@@ -759,7 +762,7 @@ export class BookingWizardComponent implements OnInit {
     this.serviceId.set(svcId);
 
     // Professional pre-selected from query param
-    this.route.queryParams.subscribe((qp) => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((qp) => {
       if (qp["professional"]) this.formProfessionalId = qp["professional"];
     });
 
@@ -799,9 +802,14 @@ export class BookingWizardComponent implements OnInit {
   }
 
   private searchAutoSlot(weekStart: Date, weeksChecked: number) {
+    if (weeksChecked === 0) {
+      if (this.autoSearchInProgress) return;
+      this.autoSearchInProgress = true;
+    }
     if (weeksChecked >= 4) {
       this.autoError.set("No hay disponibilidad en las próximas 4 semanas");
       this.autoSearching.set(false);
+      this.autoSearchInProgress = false;
       return;
     }
     const weekStr = this.formatDateParam(weekStart);
@@ -820,6 +828,7 @@ export class BookingWizardComponent implements OnInit {
             this.calendarInitialDate.set(slot.datetime);
             this.selectedSlot.set(slot);
             this.autoSearching.set(false);
+            this.autoSearchInProgress = false;
             this.step.set(3);
             return;
           }
@@ -830,6 +839,7 @@ export class BookingWizardComponent implements OnInit {
       error: () => {
         this.autoError.set("Error al buscar disponibilidad");
         this.autoSearching.set(false);
+        this.autoSearchInProgress = false;
       },
     });
   }
