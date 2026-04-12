@@ -1,371 +1,108 @@
-// Simplify Agenda Frontend - Base Styles
-// Design tokens following the spec
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  // Colors - Light Mode
-  --color-primary: #10B981;
-  --color-primary-hover: #059669;
-  --color-primary-light: #d1fae5;
-  --color-primary-text: #ffffff;
-
-  --color-secondary: #64748b;
-  --color-secondary-hover: #475569;
-  --color-secondary-light: #f1f5f9;
-  --color-secondary-text: #ffffff;
-  --color-surface-hover: #e2e8f0;
-  --color-text-disabled: #94a3b8;
-
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-
-  --color-background: #ffffff;
-  --color-surface: #f8fafc;
-  --color-border: #e2e8f0;
-
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
-
-  // Spacing
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-
-  // Typography
-  --font-family:
-    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-  --font-size-4xl: 2.25rem;
-
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  // Border Radius
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-full: 9999px;
-
-  // Shadows
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-
-  // Transitions
-  --transition-fast: 150ms ease;
-  --transition-base: 200ms ease;
-  --transition-slow: 300ms ease;
-
-  // Skeleton animation colors
-  --skeleton-from: #e2e8f0;
-  --skeleton-to: #f1f5f9;
-}
-
-// Reset & Base
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  font-size: 16px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  line-height: 1.5;
-  color: var(--color-text-primary);
-  background-color: var(--color-background);
-}
-
-// Typography
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.25;
-}
-
-h1 {
-  font-size: var(--font-size-4xl);
-}
-h2 {
-  font-size: var(--font-size-3xl);
-}
-h3 {
-  font-size: var(--font-size-2xl);
-}
-h4 {
-  font-size: var(--font-size-xl);
-}
-h5 {
-  font-size: var(--font-size-lg);
-}
-h6 {
-  font-size: var(--font-size-base);
-}
-
-p {
-  margin: 0;
-  line-height: 1.6;
-}
-
-a {
-  color: var(--color-primary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-
-  &:hover {
-    color: var(--color-primary-hover);
-  }
-}
-
-// Form Elements
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-  font-size: inherit;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-}
-
-// Utility Classes
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-4);
-}
-
-.card {
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-sm);
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-
-  &-primary {
-    background-color: var(--color-primary);
-    color: white;
-
-    &:hover {
-      background-color: var(--color-primary-hover);
-    }
-
-    &:disabled {
-      background-color: var(--color-secondary);
-      cursor: not-allowed;
-    }
+@layer base {
+  :root {
+    color-scheme: light;
   }
 
-  &-secondary {
-    background-color: var(--color-surface);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-
-    &:hover {
-      background-color: var(--color-border);
-    }
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-}
-
-.form-group {
-  margin-bottom: var(--space-4);
-
-  label {
-    display: block;
-    margin-bottom: var(--space-2);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text-primary);
-  }
-
-  input,
-  select,
-  textarea {
-    width: 100%;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-background);
-    transition:
-      border-color var(--transition-fast),
-      box-shadow var(--transition-fast);
-
-    &:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px var(--color-primary-light);
-    }
-
-    &.invalid {
-      border-color: var(--color-error);
-    }
-  }
-
-  .error-message {
-    margin-top: var(--space-1);
-    font-size: var(--font-size-xs);
-    color: var(--color-error);
-  }
-}
-
-// Grid System
-.grid {
-  display: grid;
-  gap: var(--space-6);
-
-  &-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  &-3 {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  &-4 {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    &-2,
-    &-3,
-    &-4 {
-      grid-template-columns: 1fr;
-    }
-  }
-}
-
-// Flexbox Helpers
-.flex {
-  display: flex;
-}
-.flex-col {
-  flex-direction: column;
-}
-.items-center {
-  align-items: center;
-}
-.justify-center {
-  justify-content: center;
-}
-.justify-between {
-  justify-content: space-between;
-}
-.gap-2 {
-  gap: var(--space-2);
-}
-.gap-4 {
-  gap: var(--space-4);
-}
-.gap-6 {
-  gap: var(--space-6);
-}
-
-// Spacing Helpers
-.mt-2 {
-  margin-top: var(--space-2);
-}
-.mt-4 {
-  margin-top: var(--space-4);
-}
-.mt-6 {
-  margin-top: var(--space-6);
-}
-.mb-2 {
-  margin-bottom: var(--space-2);
-}
-.mb-4 {
-  margin-bottom: var(--space-4);
-}
-.mb-6 {
-  margin-bottom: var(--space-6);
-}
-
-// Text Helpers
-.text-center {
-  text-align: center;
-}
-.text-sm {
-  font-size: var(--font-size-sm);
-}
-.text-muted {
-  color: var(--color-text-muted);
-}
-.text-error {
-  color: var(--color-error);
-}
-.text-success {
-  color: var(--color-success);
-}
-
-// Dark Mode
-html.dark {
-  color-scheme: dark;
-  --color-background: #0f172a;
-  --color-surface: #1e293b;
-  --color-border: #334155;
-  --color-text-primary: #f1f5f9;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #64748b;
-  --color-surface-hover: #334155;
-  --skeleton-from: #1e293b;
-  --skeleton-to: #334155;
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-text-primary);
+    @apply font-sans text-slate-800 bg-white m-0 p-0;
   }
 
-  input,
-  select,
-  textarea {
-    background-color: var(--color-surface) !important;
-    border-color: var(--color-border) !important;
-    color: var(--color-text-primary) !important;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold leading-tight m-0;
   }
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
+  h4 { @apply text-xl; }
+  h5 { @apply text-lg; }
+  h6 { @apply text-base; }
+
+  p { @apply m-0 leading-relaxed; }
+
+  a { @apply text-primary hover:text-primary-hover no-underline transition-colors duration-150; }
+
+  button, input, select, textarea {
+    @apply font-sans;
+  }
+
+  button { @apply cursor-pointer border-none bg-transparent; }
+}
+
+@layer components {
+  .container {
+    @apply w-full max-w-[1200px] mx-auto px-4;
+  }
+
+  .card {
+    @apply bg-white border border-slate-200 rounded-xl p-6 shadow-sm;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium rounded-md transition-all duration-150;
+
+    &-primary {
+      @apply bg-primary text-white hover:bg-primary-hover disabled:bg-secondary disabled:cursor-not-allowed;
+    }
+
+    &-secondary {
+      @apply bg-slate-100 text-slate-800 border border-slate-200 hover:bg-slate-200;
+    }
+  }
+
+  .form-group {
+    @apply mb-4;
+
+    label {
+      @apply block text-sm font-medium text-slate-800 mb-1;
+    }
+
+    input, select, textarea {
+      @apply w-full px-4 py-3 border border-slate-200 rounded-md bg-white text-slate-800 transition-colors duration-150;
+      &:focus { @apply outline-none border-primary shadow-[0_0_0_3px_#d1fae5]; }
+      &.invalid { @apply border-error; }
+    }
+
+    .error-message {
+      @apply text-xs text-error mt-1;
+    }
+  }
+}
+
+html.dark {
+  color-scheme: dark;
+  @apply bg-slate-900 text-slate-100;
+
+  body {
+    @apply bg-slate-900 text-slate-100;
+  }
+
+  h1, h2, h3, h4, h5, h6, p { @apply text-slate-100; }
+
+  .card {
+    @apply bg-slate-800 border-slate-700;
+  }
+
+  .btn-secondary {
+    @apply bg-slate-700 text-slate-100 border-slate-600 hover:bg-slate-600;
+  }
+
+  .form-group {
+    label { @apply text-slate-300; }
+    input, select, textarea {
+      @apply bg-slate-800 border-slate-600 text-slate-100 !important;
+      &:focus { @apply border-primary shadow-[0_0_0_3px_#064e3b]; }
+    }
+  }
+
+  a { @apply text-primary-light hover:text-primary; }
 }

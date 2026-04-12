@@ -49,95 +49,51 @@ import { LanguageSwitcherComponent } from "./language-switcher.component";
       </div>
     </header>
   `,
-  styles: [
-    `
-      .site-header {
-        background: var(--color-surface);
-        border-bottom: 1px solid var(--color-border);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
+  styles: [`
+    :host { display: block; }
 
-      .header-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: var(--space-4) var(--space-6);
-        display: flex;
-        align-items: center;
-        gap: var(--space-6);
-      }
+    .site-header {
+      @apply bg-slate-50 border-b border-slate-200 sticky top-0 z-50;
+    }
 
-      .logo {
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-        flex-shrink: 0;
-      }
+    .header-container {
+      @apply max-w-[1200px] mx-auto px-6 py-4 flex items-center gap-6;
+    }
 
-      .logo-img {
-        height: 40px;
-        width: auto;
-        object-fit: contain;
-      }
+    .logo {
+      @apply flex items-center no-underline flex-shrink-0;
+    }
 
-      .logo-text {
-        font-size: var(--font-size-xl);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-primary);
-      }
+    .logo-img {
+      @apply h-10 w-auto object-contain;
+    }
 
+    .logo-text {
+      @apply text-xl font-bold text-primary;
+    }
+
+    .main-nav {
+      @apply flex gap-6 flex-1 justify-center;
+    }
+
+    .main-nav a {
+      @apply text-secondary font-medium no-underline px-3 py-2 rounded-md transition-all duration-150;
+      &:hover { @apply text-slate-800 bg-slate-100; }
+      &.active { @apply text-primary bg-emerald-50; }
+    }
+
+    .header-actions {
+      @apply flex items-center gap-4;
+    }
+
+    @media (max-width: 768px) {
+      .header-container { @apply flex-wrap; }
       .main-nav {
-        display: flex;
-        gap: var(--space-6);
-        flex: 1;
-        justify-content: center;
+        @apply order-3 w-full justify-start gap-2;
+        a { @apply text-sm py-2 px-2; }
       }
-
-      .main-nav a {
-        color: var(--color-text-secondary);
-        text-decoration: none;
-        font-weight: var(--font-weight-medium);
-        padding: var(--space-2) var(--space-3);
-        border-radius: var(--radius-md);
-        transition: all var(--transition-fast);
-      }
-
-      .main-nav a:hover {
-        color: var(--color-text-primary);
-        background: var(--color-surface-hover);
-      }
-
-      .main-nav a.active {
-        color: var(--color-primary);
-        background: var(--color-primary-light);
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: var(--space-4);
-      }
-
-      @media (max-width: 768px) {
-        .header-container {
-          flex-wrap: wrap;
-        }
-
-        .main-nav {
-          order: 3;
-          width: 100%;
-          justify-content: flex-start;
-          gap: var(--space-2);
-        }
-
-        .main-nav a {
-          font-size: var(--font-size-sm);
-          padding: var(--space-2);
-        }
-      }
-    `,
-  ],
+    }
+  `],
 })
 export class HeaderComponent {
   @Input() companyName: string = "Simplifica CRM";

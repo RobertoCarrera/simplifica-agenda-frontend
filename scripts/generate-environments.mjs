@@ -44,7 +44,7 @@ function requireEnv(name) {
 
 const bffBaseUrl =
   process.env.BFF_BASE_URL ||
-  "https://ufutyjbqfjrlzkprvyvs.supabase.co/functions/v1/booking-public";
+  "https://lsntpezzhinnohggezxy.supabase.co/functions/v1/booking-public";
 
 const turnstileSiteKey = requireEnv("TURNSTILE_SITE_KEY");
 const supabaseAnonKey = requireEnv("SUPABASE_ANON_KEY");

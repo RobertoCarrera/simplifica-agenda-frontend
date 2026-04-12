@@ -27,61 +27,28 @@ import { TranslocoModule } from "@jsverse/transloco";
   styles: [
     `
       .site-footer {
-        background: var(--color-surface);
-        border-top: 1px solid var(--color-border);
-        padding: var(--space-6) var(--space-4);
-        margin-top: auto;
+        @apply bg-slate-50 border-t border-slate-200 px-4 py-6 mt-auto;
       }
 
       .footer-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-4);
-        text-align: center;
+        @apply max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-center;
       }
 
-      .footer-info {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-      }
+      .footer-info { @apply flex flex-col gap-0.5; }
 
-      .copyright {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-secondary);
-        margin: 0;
-      }
+      .copyright { @apply text-sm text-secondary m-0; }
 
-      .tagline {
-        font-size: var(--font-size-xs);
-        color: var(--color-text-disabled);
-        margin: 0;
-      }
+      .tagline { @apply text-xs text-slate-400 m-0; }
 
-      .footer-links {
-        display: flex;
-        gap: var(--space-6);
-      }
+      .footer-links { @apply flex gap-6; }
 
       .footer-link {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-secondary);
-        text-decoration: none;
-        transition: color var(--transition-fast);
-      }
-
-      .footer-link:hover {
-        color: var(--color-primary);
+        @apply text-sm text-secondary no-underline transition-colors duration-150;
+        &:hover { @apply text-primary; }
       }
 
       @media (max-width: 480px) {
-        .footer-links {
-          flex-direction: column;
-          gap: var(--space-3);
-        }
+        .footer-links { @apply flex-col gap-3; }
       }
     `,
   ],

@@ -28,36 +28,15 @@ const STORAGE_KEY = "simplify-agenda-lang";
   `,
   styles: [
     `
-      .language-switcher {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-      }
+      .language-switcher { @apply flex items-center gap-2; }
 
       .lang-btn {
-        background: transparent;
-        border: none;
-        color: var(--color-text-secondary);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
-        padding: var(--space-1) var(--space-2);
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        border-radius: var(--radius-sm);
+        @apply bg-transparent border-none text-secondary text-sm font-medium px-2 py-1 cursor-pointer transition-all duration-150 rounded;
+        &:hover { @apply text-slate-800; }
+        &.active { @apply text-primary bg-emerald-50; }
       }
 
-      .lang-btn:hover {
-        color: var(--color-text-primary);
-      }
-
-      .lang-btn.active {
-        color: var(--color-primary);
-        background: var(--color-primary-light);
-      }
-
-      .divider {
-        color: var(--color-border);
-      }
+      .divider { @apply text-slate-300; }
     `,
   ],
 })
