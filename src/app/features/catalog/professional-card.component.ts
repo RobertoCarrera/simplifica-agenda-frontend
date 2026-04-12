@@ -52,110 +52,43 @@ import { Professional } from "../../services/booking-public.service";
   styles: [
     `
       .professional-card {
-        background: var(--color-surface);
-        border-radius: var(--radius-lg);
-        padding: var(--space-6);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: var(--space-4);
-        transition:
-          transform var(--transition-fast),
-          box-shadow var(--transition-fast);
-        border: 1px solid var(--color-border);
-        text-align: center;
-      }
-
-      .professional-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        @apply bg-slate-50 rounded-xl p-6 flex flex-col items-center gap-4 border border-slate-200 text-center;
+        transition: transform 150ms ease, box-shadow 150ms ease;
+        &:hover { transform: translateY(-2px); @apply shadow-lg; }
       }
 
       .professional-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        overflow: hidden;
-        background: var(--color-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        @apply w-20 h-20 rounded-full overflow-hidden bg-primary flex items-center justify-center;
+        img { @apply w-full h-full object-cover; }
       }
 
-      .professional-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+      .initials { @apply text-2xl font-bold text-white; }
 
-      .initials {
-        font-size: var(--font-size-2xl);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-primary-text);
-      }
-
-      .professional-info {
-        flex: 1;
-      }
+      .professional-info { @apply flex-1; }
 
       .professional-name {
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-text-primary);
-        margin: 0 0 var(--space-3) 0;
+        @apply text-lg font-semibold text-slate-800 m-0 mb-3;
       }
 
       .professional-services {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: var(--space-2);
+        @apply flex flex-wrap justify-center gap-2;
       }
 
       .service-tag {
-        background: var(--color-secondary-light);
-        color: var(--color-secondary);
-        border: 1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent);
-        padding: var(--space-1) var(--space-3);
-        border-radius: var(--radius-full);
-        font-size: var(--font-size-xs);
+        @apply bg-slate-100 text-secondary border border-slate-300 px-3 py-0.5 rounded-full text-xs;
       }
 
-      .professional-actions {
-        display: flex;
-        gap: var(--space-3);
-        width: 100%;
-      }
+      .professional-actions { @apply flex gap-3 w-full; }
 
       .btn {
-        flex: 1;
-        padding: var(--space-3) var(--space-4);
-        border-radius: var(--radius-md);
-        font-weight: var(--font-weight-medium);
-        text-align: center;
-        text-decoration: none;
-        font-size: var(--font-size-sm);
-        transition: all var(--transition-fast);
+        @apply flex-1 px-4 py-3 rounded-md font-medium text-center no-underline text-sm transition-all duration-150;
       }
 
-      .btn-outline {
-        background: transparent;
-        border: 1px solid var(--color-border);
-        color: var(--color-text-primary);
-      }
-
-      .btn-outline:hover {
-        background: var(--color-surface-hover);
-      }
+      .btn-outline { @apply bg-transparent border border-slate-200 text-slate-800; &:hover { @apply bg-slate-100; } }
 
       .btn-primary {
-        background: var(--color-primary);
-        border: 1px solid var(--color-primary);
-        color: var(--color-primary-text);
-      }
-
-      .btn-primary:hover {
-        filter: brightness(1.1);
+        @apply bg-primary border border-primary text-white;
+        &:hover { filter: brightness(1.1); }
       }
     `,
   ],

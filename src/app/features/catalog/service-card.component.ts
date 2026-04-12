@@ -31,97 +31,57 @@ import { Service } from "../../services/booking-public.service";
       </div>
     </div>
   `,
-  styles: [
-    `
-      .service-card {
-        background: var(--color-surface);
-        border-radius: var(--radius-lg);
-        padding: var(--space-6);
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-4);
-        transition:
-          transform var(--transition-fast),
-          box-shadow var(--transition-fast);
-        border: 1px solid var(--color-border);
-      }
+  styles: [`
+    :host { display: block; }
 
-      .service-card:hover {
+    .service-card {
+      @apply bg-slate-50 rounded-xl p-6 flex flex-col gap-4 border border-slate-200;
+      transition: transform 150ms ease, box-shadow 150ms ease;
+      &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        @apply shadow-lg;
       }
+    }
 
-      .service-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: var(--space-4);
-      }
+    .service-header {
+      @apply flex justify-between items-start gap-4;
+    }
 
-      .service-name {
-        font-size: var(--font-size-lg);
-        font-weight: var(--font-weight-semibold);
-        color: var(--color-text-primary);
-        margin: 0;
-      }
+    .service-name {
+      @apply text-lg font-semibold text-slate-800 m-0;
+    }
 
-      .service-price {
-        font-size: var(--font-size-xl);
-        font-weight: var(--font-weight-bold);
-        color: var(--color-secondary);
-      }
+    .service-price {
+      @apply text-xl font-bold text-secondary;
+    }
 
-      .service-meta {
-        display: flex;
-        gap: var(--space-4);
-        color: var(--color-text-secondary);
-        font-size: var(--font-size-sm);
-      }
+    .service-meta {
+      @apply flex gap-4 text-sm text-secondary;
+    }
 
-      .service-duration {
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-      }
+    .service-duration {
+      @apply flex items-center gap-2;
+    }
 
-      .service-actions {
-        display: flex;
-        gap: var(--space-3);
-        margin-top: auto;
-      }
+    .service-actions {
+      @apply flex gap-3 mt-auto;
+    }
 
-      .btn {
-        flex: 1;
-        padding: var(--space-3) var(--space-4);
-        border-radius: var(--radius-md);
-        font-weight: var(--font-weight-medium);
-        text-align: center;
-        text-decoration: none;
-        font-size: var(--font-size-sm);
-        transition: all var(--transition-fast);
-      }
+    .btn {
+      @apply flex-1 px-4 py-3 rounded-md font-medium text-center no-underline text-sm transition-all duration-150;
+    }
 
-      .btn-outline {
-        background: transparent;
-        border: 1px solid var(--color-border);
-        color: var(--color-text-primary);
-      }
+    .btn-outline {
+      @apply bg-transparent border border-slate-200 text-slate-800;
+      &:hover { @apply bg-slate-100; }
+    }
 
-      .btn-outline:hover {
-        background: var(--color-surface-hover);
-      }
-
-      .btn-primary {
-        background: var(--primary-color, var(--color-primary));
-        border: 1px solid var(--primary-color, var(--color-primary));
-        color: var(--color-primary-text);
-      }
-
-      .btn-primary:hover {
-        filter: brightness(1.1);
-      }
-    `,
-  ],
+    .btn-primary {
+      background: var(--primary-color, #10B981);
+      @apply border-transparent text-white;
+      &:hover { filter: brightness(1.1); }
+    }
+  `],
 })
 export class ServiceCardComponent {
   @Input({ required: true }) service!: Service;
