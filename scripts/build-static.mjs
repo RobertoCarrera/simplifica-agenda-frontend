@@ -14,7 +14,7 @@ const publicDir = join(__dirname, '..', 'public');
 
 const BFF_BASE_URL =
   process.env.BFF_BASE_URL ||
-  'https://ufutyjbqfjrlzkprvyvs.supabase.co/functions/v1/booking-public';
+  'https://lsntpezzhinnohggezxy.supabase.co/functions/v1/booking-public';
 const BOOKING_API_KEY = process.env.BOOKING_API_KEY || '';
 
 if (!BOOKING_API_KEY) {
