@@ -14,6 +14,7 @@ export const bookingAuthInterceptor: HttpInterceptorFn = (req, next) => {
 
   const authReq = req.clone({
     setHeaders: {
+      apikey: `${environment.supabaseAnonKey}`,
       Authorization: `Bearer ${environment.supabaseAnonKey}`,
       "x-api-key": environment.bookingApiKey,
       "x-client-id": environment.clientId,
