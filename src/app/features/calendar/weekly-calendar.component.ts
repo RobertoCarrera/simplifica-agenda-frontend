@@ -47,40 +47,43 @@ import { BusyPeriod } from "../../services/booking-public.service";
 
       <!-- Week Days Grid -->
       <div class="week-grid">
-        <div
-          class="day-column"
-          *ngFor="let day of weekDays(); let i = index"
-          [class.today]="day.isToday"
-        >
-          <div class="day-header">
-            <span class="day-name">{{ day.dayName }}</span>
-            <span class="day-number" [class.today-badge]="day.isToday">
-              {{ day.dayNumber }}
-            </span>
-          </div>
+        @for (day of weekDays(); track day.date; let i = $index) {
+          <div class="day-column" [class.today]="day.isToday">
+            <div class="day-header">
+              <span class="day-name">{{ day.dayName }}</span>
+              <span class="day-number" [class.today-badge]="day.isToday">
+                {{ day.dayNumber }}
+              </span>
+            </div>
 
-          <div class="slots-container">
-            <app-time-slot
-              *ngFor="let slot of getSlotsForDay(i)"
-              [slot]="slot"
-              (select)="onSlotSelect($event)"
-            />
+            <div class="slots-container">
+              @for (slot of getSlotsForDay(i); track slot.id) {
+                <app-time-slot
+                  [slot]="slot"
+                  (select)="onSlotSelect($event)"
+                />
+              }
 
-            <div class="no-slots" *ngIf="getSlotsForDay(i).length === 0">
-              <span>{{ "calendar.noSlots" | transloco }}</span>
+              @if (getSlotsForDay(i).length === 0) {
+                <div class="no-slots">
+                  <span>{{ "calendar.noSlots" | transloco }}</span>
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
       </div>
 
       <!-- Selected Slot Display -->
-      <div class="selected-slot" *ngIf="selectedSlot()">
-        <span class="label">{{ "calendar.selected" | transloco }}:</span>
-        <span class="slot-time">
-          {{ selectedSlot()?.startTime }} - {{ selectedSlot()?.endTime }}
-        </span>
-        <span class="slot-date">{{ formatSelectedDate() }}</span>
-      </div>
+      @if (selectedSlot()) {
+        <div class="selected-slot">
+          <span class="label">{{ "calendar.selected" | transloco }}:</span>
+          <span class="slot-time">
+            {{ selectedSlot()?.startTime }} - {{ selectedSlot()?.endTime }}
+          </span>
+          <span class="slot-date">{{ formatSelectedDate() }}</span>
+        </div>
+      }
     </div>
   `,
   styles: [
