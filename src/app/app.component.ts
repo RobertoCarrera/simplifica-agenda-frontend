@@ -2,6 +2,7 @@ import { Component, inject } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { FooterComponent } from "./shared/ui/footer.component";
 import { TranslocoService } from "@jsverse/transloco";
+import { ThemeService } from "./core/services/theme.service";
 
 @Component({
   selector: "app-root",
@@ -38,6 +39,8 @@ import { TranslocoService } from "@jsverse/transloco";
 })
 export class AppComponent {
   constructor() {
+    inject(ThemeService); // Initialize theme service (applies dark class to <html>)
+
     const transloco = inject(TranslocoService);
     const available = ["es", "ca"];
     const browserLang = (navigator.languages?.[0] ?? navigator.language ?? "es")

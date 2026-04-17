@@ -321,13 +321,10 @@ interface DurationGroup {
       }
 
       .catalog-hero {
-        @apply rounded-2xl p-8 pt-4 pb-0 mb-4;
+        @apply rounded-2xl p-8 pt-4 pb-0 mb-4 bg-slate-100 dark:bg-slate-800 dark:border dark:border-slate-700;
         background: linear-gradient(135deg, #f1f5f9 0%, transparent 80%);
-        @media (prefers-color-scheme: dark) {
-          @apply bg-slate-800 border border-slate-700;
-          h1, .page-subtitle { @apply text-white; }
-          .page-subtitle { @apply opacity-90; }
-        }
+        h1, .page-subtitle { @apply dark:text-white; }
+        .page-subtitle { @apply dark:opacity-90; }
       }
 
       .page-header {
@@ -548,13 +545,6 @@ export class CatalogComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Apply system color-scheme preference and react to changes
-    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    document.documentElement.classList.toggle("dark", mq?.matches ?? false);
-    mq?.addEventListener("change", (e) => {
-      document.documentElement.classList.toggle("dark", e.matches);
-    });
-
     // Capture professional_id deep-link query param before data load
     this.deepLinkProfessionalId =
       this.route.snapshot.queryParamMap.get("professional_id") ??
