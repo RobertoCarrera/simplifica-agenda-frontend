@@ -659,8 +659,22 @@ export class BookingWizardComponent implements OnInit {
         next: (res) => {
           this.submitting.set(false);
           if (res.success) {
-            this.bookingId.set(res.booking_id ?? null);
-            this.step.set(4);
+            const bookingId = res.booking_id ?? null;
+            this.bookingId.set(bookingId);
+            if (bookingId) {
+              sessionStorage.setItem('lastBookingId', bookingId);
+              // Store minimal booking info for the confirmation page
+              const details = {
+                serviceName: this.service()?.name ?? '',
+                dateTime: this.selectedSlot()
+                  ? this.formatSlotDate(this.selectedSlot()!)
+                  : '',
+              };
+              sessionStorage.setItem('lastBookingDetails', JSON.stringify(details));
+              this.router.navigate(['/confirmacion', bookingId]);
+            } else {
+              this.step.set(4);
+            }
           } else {
             this.submitError.set(res.message ?? "Error al crear la reserva");
           }
