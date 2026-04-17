@@ -636,6 +636,7 @@ export class BookingWizardComponent implements OnInit {
     let turnstile_token: string;
     try {
       await this.turnstileService.loadScript();
+      this.turnstileService.remove();
       const container = document.getElementById('cf-turnstile');
       if (container) container.innerHTML = '';
       turnstile_token = await this.turnstileService.render('cf-turnstile');

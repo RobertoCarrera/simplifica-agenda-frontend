@@ -89,12 +89,12 @@ export class TurnstileService {
   }
 
   /**
-   * Remove the Turnstile widget
+   * Remove the Turnstile widget and clear internal state
    */
   remove(): void {
     if (this.widgetId && window.turnstile) {
       window.turnstile.remove(this.widgetId);
-      this.widgetId = null;
     }
+    this.widgetId = null;
   }
 }
