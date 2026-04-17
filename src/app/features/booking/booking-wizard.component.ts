@@ -536,6 +536,8 @@ export class BookingWizardComponent implements OnInit {
     const errs: Record<string, string> = {};
     if (!this.formName.trim()) errs["name"] = "El nombre es obligatorio";
     if (!this.formPhone.trim()) errs["phone"] = "El teléfono es obligatorio";
+    else if (!/^(\+34)?[6-9]\d{8}$/.test(this.formPhone.replace(/\s+/g, '')))
+      errs["phone"] = "Número de teléfono no válido (formato español)";
     if (!this.formEmail.trim()) errs["email"] = "El email es obligatorio";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formEmail))
       errs["email"] = "Email no válido";
