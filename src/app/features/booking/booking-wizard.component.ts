@@ -666,11 +666,13 @@ export class BookingWizardComponent implements OnInit {
             if (bookingId) {
               sessionStorage.setItem('lastBookingId', bookingId);
               // Store minimal booking info for the confirmation page
+              const slot = this.selectedSlot();
               const details = {
                 serviceName: this.service()?.name ?? '',
-                dateTime: this.selectedSlot()
-                  ? this.formatSlotDate(this.selectedSlot()!)
-                  : '',
+                dateTime: slot ? this.formatSlotDate(slot) : '',
+                // Store raw datetime for calendar generation
+                datetimeIso: slot ? this.buildDatetime(slot) : '',
+                durationMinutes: this.service()?.duration_minutes ?? 60,
               };
               sessionStorage.setItem('lastBookingDetails', JSON.stringify(details));
               this.router.navigate(['/confirmacion', bookingId]);

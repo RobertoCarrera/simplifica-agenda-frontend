@@ -14,6 +14,18 @@ import { TranslocoModule } from "@jsverse/transloco";
         <p>{{ "booking.success.message" | transloco }}</p>
 
         <div class="booking-details">
+          @if (bookingDetails()?.serviceName) {
+            <div class="detail-row">
+              <span class="label">Servicio:</span>
+              <span class="value">{{ bookingDetails()!.serviceName }}</span>
+            </div>
+          }
+          @if (bookingDetails()?.dateTime) {
+            <div class="detail-row">
+              <span class="label">Fecha:</span>
+              <span class="value">{{ bookingDetails()!.dateTime }}</span>
+            </div>
+          }
           <div class="detail-row">
             <span class="label"
               >{{ "booking.success.bookingId" | transloco }}:</span
@@ -23,7 +35,7 @@ import { TranslocoModule } from "@jsverse/transloco";
         </div>
 
         <div class="success-actions">
-          <button class="btn btn-primary">
+          <button class="btn btn-primary" (click)="addToCalendar()">
             {{ "booking.success.addToCalendar" | transloco }}
           </button>
           <a
@@ -118,6 +130,7 @@ export class BookingSuccessComponent implements OnInit {
 
   bookingId = signal<string>("");
   slug = signal<string>("");
+  bookingDetails = signal<{serviceName: string; dateTime: string; datetimeIso: string; durationMinutes: number} | null>(null);
 
   ngOnInit() {
     // Get slug from parent route
@@ -129,12 +142,58 @@ export class BookingSuccessComponent implements OnInit {
       }
     }
 
-    // Get bookingId from route params
+    // Get bookingId from route params, fallback to sessionStorage
     const bookingIdParam = this.route.snapshot.paramMap.get("bookingId");
     if (bookingIdParam) {
       this.bookingId.set(bookingIdParam);
     } else {
-      this.bookingId.set("N/A");
+      const storedId = sessionStorage.getItem('lastBookingId');
+      this.bookingId.set(storedId ?? "N/A");
     }
+
+    // Load booking details from sessionStorage
+    const storedDetails = sessionStorage.getItem('lastBookingDetails');
+    if (storedDetails) {
+      try {
+        this.bookingDetails.set(JSON.parse(storedDetails));
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }
+
+  addToCalendar(): void {
+    const details = this.bookingDetails();
+    if (!details?.datetimeIso) return;
+
+    const startDate = new Date(details.datetimeIso);
+    const endDate = new Date(startDate.getTime() + (details.durationMinutes ?? 60) * 60 * 1000);
+
+    const formatDate = (d: Date): string => {
+      return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    };
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Simplifica//Booking//ES',
+      'BEGIN:VEVENT',
+      `DTSTART:${formatDate(startDate)}`,
+      `DTEND:${formatDate(endDate)}`,
+      `SUMMARY:${details.serviceName || 'Cita'} - Simplifica`,
+      `DESCRIPTION:Reserva confirmada. Ref: ${this.bookingId()}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reserva-${this.bookingId()}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 }
