@@ -558,7 +558,7 @@ export class BookingWizardComponent implements OnInit {
       return;
     }
     const weekStr = this.formatDateParam(weekStart);
-    const profId = this.formProfessionalId || undefined;
+    const profId = this.formProfessionalId === '' ? undefined : this.formProfessionalId;
     this.bookingService.getAvailability(this.slug(), weekStr, profId).subscribe({
       next: (res) => {
         const days = this.availabilityService.generateWeekDays(weekStart);
@@ -601,7 +601,7 @@ export class BookingWizardComponent implements OnInit {
   // ── Step 3 ────────────────────────────────────────────────
   private loadAvailability(weekStart: Date) {
     this.loadingAvailability.set(true);
-    const profId = this.formProfessionalId || undefined;
+    const profId = this.formProfessionalId === '' ? undefined : this.formProfessionalId;
     this.bookingService
       .getAvailability(this.slug(), this.formatDateParam(weekStart), profId)
       .subscribe({
