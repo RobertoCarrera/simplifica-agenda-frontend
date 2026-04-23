@@ -317,21 +317,19 @@ interface DurationGroup {
 
       /* ── Main layout ── */
       .catalog-page {
-        @apply max-w-[1100px] mx-auto px-4 pb-16;
+        @apply max-w-[1100px] mx-auto px-6 pb-16;
       }
 
       .catalog-hero {
         @apply rounded-2xl p-8 pt-4 pb-0 mb-4;
         background: linear-gradient(135deg, #f1f5f9 0%, transparent 80%);
-        @media (prefers-color-scheme: dark) {
-          @apply bg-slate-800 border border-slate-700;
-          h1, .page-subtitle { @apply text-white; }
-          .page-subtitle { @apply opacity-90; }
+        html.dark & {
+          background: linear-gradient(135deg, #1e293b 0%, transparent 80%);
         }
       }
 
       .page-header {
-        @apply mb-6;
+        @apply mb-6 pt-4;
         h1 { @apply text-2xl font-bold text-slate-800 m-0 mb-1; }
       }
       .page-subtitle { @apply text-sm text-secondary m-0; }
@@ -362,27 +360,32 @@ interface DurationGroup {
       }
 
       /* ── Service card ── */
-      .service-card {
-        @apply bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 transition-all duration-150;
-        @apply shadow-[0_4px_12px_rgba(0,0,0,0.05)];
+.service-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply rounded-xl p-5 flex flex-col gap-4 transition-all duration-150;
         &:hover {
-          @apply border-primary;
+          border-color: var(--color-primary);
           transform: translateY(-2px);
-          @apply shadow-[0_8px_24px_rgba(0,0,0,0.12)];
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
       }
       .service-card-top { @apply flex items-start gap-3; }
       .service-dot { @apply w-3 h-3 rounded-full flex-shrink-0 mt-1; }
       .service-card-info { @apply flex-1 min-w-0; }
-      .service-name { @apply text-base font-semibold text-slate-800 m-0 mb-1 leading-tight; }
-      .service-desc { @apply text-xs text-secondary m-0 overflow-hidden line-clamp-2; }
-      .service-price { @apply text-xl font-bold text-secondary flex-shrink-0 whitespace-nowrap; }
+      .service-name { @apply text-base font-semibold m-0 mb-1 leading-tight; color: var(--color-text); }
+      .service-desc { @apply text-xs m-0 overflow-hidden line-clamp-2; color: var(--color-text-secondary); }
+      .service-price { @apply text-xl font-bold flex-shrink-0 whitespace-nowrap; color: var(--color-text-secondary); }
       .service-card-bottom {
-        @apply flex items-center justify-between border-t border-slate-200 pt-4;
+        @apply flex items-center justify-between border-t pt-4;
+        border-color: var(--color-border);
       }
       .service-meta { @apply flex items-center gap-2; }
       .duration-badge {
-        @apply text-xs font-medium px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-full text-secondary;
+        @apply text-xs font-medium px-2 py-0.5 rounded-full;
+        background: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
       }
       .prof-chips { @apply flex gap-1; }
       .prof-chip {
@@ -390,8 +393,10 @@ interface DurationGroup {
       }
       .prof-chip-img { @apply w-full h-full object-cover block; }
       .btn-reservar {
-        @apply text-sm font-semibold px-4 py-2 bg-primary text-white rounded-lg no-underline whitespace-nowrap transition-colors duration-150;
-        &:hover { @apply bg-primary-hover; }
+        @apply text-sm font-semibold px-4 py-2 rounded-lg no-underline whitespace-nowrap transition-colors duration-150;
+        background: var(--color-primary);
+        color: var(--color-primary-text);
+        &:hover { background: var(--color-primary-hover); }
       }
 
       /* ── Professionals grid ── */
@@ -399,11 +404,14 @@ interface DurationGroup {
         @apply grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mt-4;
       }
       .prof-card {
-        @apply bg-white border border-slate-200 rounded-xl p-4 cursor-pointer text-center transition-all duration-150;
-        &:hover { @apply border-primary transform -translate-y-0.5 shadow-md; }
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply rounded-xl p-4 cursor-pointer text-center transition-all duration-150;
+        &:hover { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
       }
       .prof-card-avatar-wrap {
-        @apply aspect-square rounded-lg overflow-hidden bg-slate-100 mb-3 flex items-center justify-center;
+        @apply aspect-square rounded-lg overflow-hidden mb-3 flex items-center justify-center;
+        background: var(--color-surface-hover);
       }
       .prof-card-avatar-img { @apply w-full h-full object-cover; }
       .prof-card-avatar-initials {
@@ -411,20 +419,27 @@ interface DurationGroup {
       }
       .prof-card-info { @apply text-center; }
       .prof-card-name {
-        @apply font-bold text-slate-800 text-sm m-0 mb-1;
+        @apply font-bold text-sm m-0 mb-1;
+        color: var(--color-text);
       }
       .prof-card-tags { @apply flex flex-wrap justify-center gap-1; }
       .prof-tag {
-        @apply text-[0.6rem] font-bold uppercase tracking-wide px-2 py-0.5 bg-slate-100 border border-slate-300 rounded-sm text-secondary;
+        @apply text-[0.6rem] font-bold uppercase tracking-wide px-2 py-0.5 rounded-sm;
+        background: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
       }
 
       /* ── Professional detail ── */
       .back-btn {
-        @apply inline-flex items-center gap-2 text-sm text-secondary bg-transparent border-none cursor-pointer p-0 mb-6 transition-colors duration-150;
-        &:hover { @apply text-slate-800; }
+        @apply inline-flex items-center gap-2 text-sm bg-transparent border-none cursor-pointer p-0 mb-6 transition-colors duration-150;
+        color: var(--color-text-secondary);
+        &:hover { color: var(--color-text); }
       }
       .prof-detail-header {
-        @apply flex items-center gap-5 p-5 bg-white border border-slate-200 rounded-xl mb-8 shadow-sm;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply flex items-center gap-5 p-5 rounded-xl mb-8;
       }
       .prof-detail-avatar {
         @apply w-16 h-16 rounded-full object-cover flex-shrink-0;
@@ -433,13 +448,16 @@ interface DurationGroup {
         @apply w-16 h-16 rounded-full flex-shrink-0 flex items-center justify-center text-xl font-bold;
       }
       .prof-detail-name {
-        @apply text-xl font-bold text-slate-800 m-0 mb-1;
+        @apply text-xl font-bold m-0 mb-1;
+        color: var(--color-text);
       }
       .prof-detail-cta {
-        @apply text-xs font-medium text-primary m-1;
+        @apply text-xs font-medium m-1;
+        color: var(--color-primary);
       }
       .section-label {
-        @apply text-xs font-semibold uppercase tracking-wide text-slate-400 m-0 mb-4;
+        @apply text-xs font-semibold uppercase tracking-wide m-0 mb-4;
+        color: var(--color-text-disabled);
       }
 
       /* ── Duration view ── */
@@ -448,16 +466,16 @@ interface DurationGroup {
       .duration-group-icon {
         @apply w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0;
       }
-      .duration-group-title { @apply text-base font-semibold text-slate-800 m-0; }
-      .duration-group-desc { @apply text-xs text-slate-400 m-0; }
-      .duration-group-count { @apply text-sm text-slate-400 ml-auto; }
+      .duration-group-title { @apply text-base font-semibold m-0; color: var(--color-text); }
+      .duration-group-desc { @apply text-xs m-0; color: var(--color-text-disabled); }
+      .duration-group-count { @apply text-sm m-0 ml-auto; color: var(--color-text-secondary); }
       .ml-auto { margin-left: auto; }
 
       /* ── Shared btn ── */
       .btn {
         @apply inline-flex items-center gap-2 px-4 py-2 border-none rounded-md text-sm font-medium cursor-pointer no-underline transition-all duration-150;
       }
-      .btn-primary { @apply bg-primary text-white; &:hover { @apply bg-primary-hover; } }
+      .btn-primary { background: var(--color-primary); color: var(--color-primary-text); &:hover { background: var(--color-primary-hover); } }
     `,
   ],
 })
@@ -478,6 +496,7 @@ export class CatalogComponent implements OnInit {
   selectedProfessional = signal<Professional | null>(null);
   failedAvatarIds = signal<Set<string>>(new Set());
   private deepLinkProfessionalId: string | null = null;
+  private deepLinkProfessionalSlug: string | null = null;
 
   readonly durationGroups: DurationGroup[] = [
     { label: "Sesiones rápidas",  desc: "30 min o menos",  icon: "⚡", min: 0,  max: 30,       color: "#10B981" },
@@ -548,14 +567,11 @@ export class CatalogComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Apply system color-scheme preference and react to changes
-    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    document.documentElement.classList.toggle("dark", mq?.matches ?? false);
-    mq?.addEventListener("change", (e) => {
-      document.documentElement.classList.toggle("dark", e.matches);
-    });
-
-    // Capture professional_id deep-link query param before data load
+    // Capture professional deep-link query params (slug or UUID) before data load
+    this.deepLinkProfessionalSlug =
+      this.route.snapshot.queryParamMap.get("professional") ??
+      this.route.parent?.snapshot.queryParamMap.get("professional") ??
+      null;
     this.deepLinkProfessionalId =
       this.route.snapshot.queryParamMap.get("professional_id") ??
       this.route.parent?.snapshot.queryParamMap.get("professional_id") ??
@@ -610,8 +626,17 @@ export class CatalogComponent implements OnInit {
           : topLevel;
         this.professionals.set(professionals);
 
-        // Deep-link: if a professional_id was in the URL, auto-select them
-        if (this.deepLinkProfessionalId) {
+        // Deep-link: if a professional slug or id was in the URL, auto-select them
+        // Slug takes precedence (new format), then UUID fallback
+        if (this.deepLinkProfessionalSlug) {
+          const target = professionals.find(p => p.slug === this.deepLinkProfessionalSlug);
+          if (target) {
+            this.activeTab.set('professionals');
+            this.selectedProfessional.set(target);
+          }
+          this.deepLinkProfessionalSlug = null;
+          this.deepLinkProfessionalId = null;
+        } else if (this.deepLinkProfessionalId) {
           const target = professionals.find(p => p.id === this.deepLinkProfessionalId);
           if (target) {
             this.activeTab.set('professionals');

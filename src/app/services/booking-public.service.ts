@@ -33,6 +33,7 @@ export interface Professional {
   title?: string;
   bio?: string;
   avatar_url?: string;
+  slug?: string;
   services?: Service[];
   company?: Company;
 }
@@ -94,11 +95,13 @@ export class BookingPublicService {
             professionals: (s.professionals ?? []).map((p: any) => ({
               ...p,
               display_name: p.display_name || p.name,
+              slug: p.slug || null,
             })),
           })),
           professionals: (res.professionals ?? []).map((p: any) => ({
             ...p,
             display_name: p.display_name || p.name,
+            slug: p.slug || null,
           })),
         })),
         catchError((err) => {
