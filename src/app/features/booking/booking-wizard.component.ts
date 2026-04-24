@@ -520,6 +520,9 @@ export class BookingWizardComponent implements OnInit {
   bookingId = signal<string | null>(null);
   failedAvatarIds = signal<Set<string>>(new Set());
 
+  // Pending professional slug (for deep-link with slug instead of UUID)
+  private _pendingProfessionalSlug: string | null = null;
+
   ngOnInit() {
     // Slug from parent route (:slug)
     const parentParams = this.route.parent?.snapshot.paramMap;
@@ -530,9 +533,18 @@ export class BookingWizardComponent implements OnInit {
     const svcId = this.route.snapshot.paramMap.get("serviceId") ?? "";
     this.serviceId.set(svcId);
 
-    // Professional pre-selected from query param
+    // Professional pre-selected from query param (supports slug or UUID)
     this.route.queryParams.subscribe((qp) => {
-      if (qp["professional"]) this.formProfessionalId = qp["professional"];
+      if (qp["professional"]) {
+        const profIdentifier = qp["professional"];
+        // If it looks like a slug (contains hyphen and not a UUID), resolve to id after professionals load
+        // Otherwise treat as UUID directly
+        if (profIdentifier.includes('-') && !this.isUuid(profIdentifier)) {
+          this._pendingProfessionalSlug = profIdentifier;
+        } else {
+          this.formProfessionalId = profIdentifier;
+        }
+      }
     });
 
     // Load service data
@@ -541,13 +553,28 @@ export class BookingWizardComponent implements OnInit {
         next: (res) => {
           const svc = res.services.find((s) => s.id === svcId) ?? null;
           this.service.set(svc);
-          this.professionals.set((res.professionals ?? []).filter(p => !!p.display_name));
+          const allProfs = (res.professionals ?? []).filter(p => !!p.display_name);
+          this.professionals.set(allProfs);
           applyBrandingColors(res.company?.primary_color, res.company?.secondary_color);
+
+          // Resolve pending professional slug to UUID if needed
+          if (this._pendingProfessionalSlug) {
+            const target = allProfs.find(p => p.slug === this._pendingProfessionalSlug);
+            if (target) {
+              this.formProfessionalId = target.id;
+            }
+            this._pendingProfessionalSlug = null;
+          }
+
           this.loadingService.set(false);
         },
         error: () => this.loadingService.set(false),
       });
     }
+  }
+
+  private isUuid(value: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
   }
 
   // ── Step 1 ────────────────────────────────────────────────
