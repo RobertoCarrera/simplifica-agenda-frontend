@@ -29,35 +29,46 @@ import { TranslocoModule } from "@jsverse/transloco";
       .site-footer {
         background: var(--color-surface);
         border-top: 1px solid var(--color-border);
-        @apply px-4 py-6 mt-auto;
+        padding: 1rem;
+        margin-top: auto;
       }
 
       .footer-container {
-        @apply max-w-[1200px] mx-auto flex flex-col items-center gap-4 text-center;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
       }
 
-      .footer-info { @apply flex flex-col gap-0.5; }
+      .footer-info { display: flex; flex-direction: column; gap: 0.125rem; }
 
       .copyright { 
-        @apply text-sm m-0; 
+        font-size: 0.875rem;
+        margin: 0;
         color: var(--color-text-secondary);
       }
 
       .tagline { 
-        @apply text-xs m-0; 
+        font-size: 0.75rem;
+        margin: 0;
         color: var(--color-text-disabled);
       }
 
-      .footer-links { @apply flex gap-6; }
+      .footer-links { display: flex; gap: 1.5rem; }
 
       .footer-link {
-        @apply text-sm no-underline transition-colors duration-150;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: color 150ms ease;
         color: var(--color-text-secondary);
-        &:hover { color: var(--color-primary); }
       }
+      .footer-link:hover { color: var(--color-primary); }
 
       @media (max-width: 480px) {
-        .footer-links { @apply flex-col gap-3; }
+        .footer-links { flex-direction: column; gap: 0.75rem; }
       }
     `,
   ],

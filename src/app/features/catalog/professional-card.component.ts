@@ -54,56 +54,89 @@ import { Professional } from "../../services/booking-public.service";
       .professional-card {
         background: var(--color-surface);
         border: 1px solid var(--color-border);
-        @apply rounded-xl p-6 flex flex-col items-center gap-4 text-center;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
         transition: transform 150ms ease, box-shadow 150ms ease;
-        &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+      }
+      .professional-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       }
 
       .professional-avatar {
-        @apply w-20 h-20 rounded-full overflow-hidden flex items-center justify-center;
+        width: 5rem;
+        height: 5rem;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background: var(--color-primary);
-        img { @apply w-full h-full object-cover; }
+      }
+      .professional-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
 
-      .initials { @apply text-2xl font-bold; color: var(--color-primary-text); }
+      .initials { font-size: 1.5rem; font-weight: 700; color: var(--color-primary-text); }
 
-      .professional-info { @apply flex-1; }
+      .professional-info { flex: 1; }
 
       .professional-name {
-        @apply text-lg font-semibold m-0 mb-3;
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0 0 0.75rem;
         color: var(--color-text);
       }
 
       .professional-services {
-        @apply flex flex-wrap justify-center gap-2;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
       }
 
       .service-tag {
-        @apply px-3 py-0.5 rounded-full text-xs;
+        padding: 0.125rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
         background: var(--color-surface-hover);
         border: 1px solid var(--color-border);
         color: var(--color-text-secondary);
       }
 
-      .professional-actions { @apply flex gap-3 w-full; }
+      .professional-actions { display: flex; gap: 0.75rem; width: 100%; }
 
       .btn {
-        @apply flex-1 px-4 py-3 rounded-md font-medium text-center no-underline text-sm transition-all duration-150;
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 150ms ease;
       }
 
       .btn-outline {
         background: transparent;
         border: 1px solid var(--color-border);
         color: var(--color-text);
-        &:hover { background: var(--color-surface-hover); }
       }
+      .btn-outline:hover { background: var(--color-surface-hover); }
 
       .btn-primary {
         background: var(--color-primary);
         border: 1px solid var(--color-primary);
         color: var(--color-primary-text);
-        &:hover { filter: brightness(1.1); }
       }
+      .btn-primary:hover { filter: brightness(1.1); }
     `,
   ],
 })

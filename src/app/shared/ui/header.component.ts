@@ -55,47 +55,78 @@ import { LanguageSwitcherComponent } from "./language-switcher.component";
     .site-header {
       background: var(--color-surface);
       border-bottom: 1px solid var(--color-border);
-      @apply sticky top-0 z-50;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
     .header-container {
-      @apply max-w-[1200px] mx-auto px-6 py-6 flex items-center gap-6;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
     }
 
     .logo {
-      @apply flex items-center no-underline flex-shrink-0;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      flex-shrink: 0;
     }
 
     .logo-img {
-      @apply h-10 w-auto object-contain;
+      height: 2.5rem;
+      width: auto;
+      object-fit: contain;
     }
 
     .logo-text {
-      @apply text-xl font-bold;
+      font-size: 1.25rem;
+      font-weight: 700;
       color: var(--color-primary);
     }
 
     .main-nav {
-      @apply flex gap-6 flex-1 justify-center;
+      display: flex;
+      gap: 1.5rem;
+      flex: 1;
+      justify-content: center;
     }
 
     .main-nav a {
-      @apply font-medium no-underline px-3 py-2 rounded-md transition-all duration-150;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      transition: all 150ms ease;
       color: var(--color-text-secondary);
-      &:hover { background: var(--color-surface-hover); color: var(--color-text); }
-      &.active { color: var(--color-primary); background: var(--color-primary-light); }
+    }
+    .main-nav a:hover {
+      background: var(--color-surface-hover);
+      color: var(--color-text);
+    }
+    .main-nav a.active {
+      color: var(--color-primary);
+      background: var(--color-primary-light);
     }
 
     .header-actions {
-      @apply flex items-center gap-4;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
     }
 
     @media (max-width: 768px) {
-      .header-container { @apply flex-wrap; }
+      .header-container { flex-wrap: wrap; }
       .main-nav {
-        @apply order-3 w-full justify-start gap-2;
-        a { @apply text-sm py-2 px-2; }
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 0.5rem;
       }
+      .main-nav a { font-size: 0.875rem; padding: 0.5rem; }
     }
   `],
 })
