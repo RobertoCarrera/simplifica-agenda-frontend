@@ -107,7 +107,7 @@ import {
       }
 
       .back-link:hover {
-        color: var(--color-text-primary);
+        color: var(--color-text);
       }
 
       .service-header-content {

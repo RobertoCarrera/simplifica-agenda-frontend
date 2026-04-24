@@ -52,22 +52,26 @@ import { Professional } from "../../services/booking-public.service";
   styles: [
     `
       .professional-card {
-        @apply bg-slate-50 rounded-xl p-6 flex flex-col items-center gap-4 border border-slate-200 text-center;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply rounded-xl p-6 flex flex-col items-center gap-4 text-center;
         transition: transform 150ms ease, box-shadow 150ms ease;
-        &:hover { transform: translateY(-2px); @apply shadow-lg; }
+        &:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
       }
 
       .professional-avatar {
-        @apply w-20 h-20 rounded-full overflow-hidden bg-primary flex items-center justify-center;
+        @apply w-20 h-20 rounded-full overflow-hidden flex items-center justify-center;
+        background: var(--color-primary);
         img { @apply w-full h-full object-cover; }
       }
 
-      .initials { @apply text-2xl font-bold text-white; }
+      .initials { @apply text-2xl font-bold; color: var(--color-primary-text); }
 
       .professional-info { @apply flex-1; }
 
       .professional-name {
-        @apply text-lg font-semibold text-slate-800 m-0 mb-3;
+        @apply text-lg font-semibold m-0 mb-3;
+        color: var(--color-text);
       }
 
       .professional-services {
@@ -75,7 +79,10 @@ import { Professional } from "../../services/booking-public.service";
       }
 
       .service-tag {
-        @apply bg-slate-100 text-secondary border border-slate-300 px-3 py-0.5 rounded-full text-xs;
+        @apply px-3 py-0.5 rounded-full text-xs;
+        background: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
       }
 
       .professional-actions { @apply flex gap-3 w-full; }
@@ -84,10 +91,17 @@ import { Professional } from "../../services/booking-public.service";
         @apply flex-1 px-4 py-3 rounded-md font-medium text-center no-underline text-sm transition-all duration-150;
       }
 
-      .btn-outline { @apply bg-transparent border border-slate-200 text-slate-800; &:hover { @apply bg-slate-100; } }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        &:hover { background: var(--color-surface-hover); }
+      }
 
       .btn-primary {
-        @apply bg-primary border border-primary text-white;
+        background: var(--color-primary);
+        border: 1px solid var(--color-primary);
+        color: var(--color-primary-text);
         &:hover { filter: brightness(1.1); }
       }
     `,

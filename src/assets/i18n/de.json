@@ -1,0 +1,132 @@
+{
+  "app": {
+    "title": "Simplifica CRM",
+    "loading": "Wird geladen..."
+  },
+  "nav": {
+    "home": "Startseite",
+    "services": "Dienstleistungen",
+    "professionals": "Fachleute",
+    "book": "Reservieren"
+  },
+  "common": {
+    "back": "Zurück",
+    "loading": "Wird geladen...",
+    "backToServices": "Zurück zu Dienstleistungen"
+  },
+  "catalog": {
+    "title": "Unsere Dienstleistungen",
+    "subtitle": "Wählen Sie die gewünschte Dienstleistung",
+    "filters": "Filtern",
+    "sort": "Sortieren",
+    "price": "Preis",
+    "duration": "Dauer",
+    "minutes": "Min.",
+    "noServices": "Keine Dienstleistungen verfügbar",
+    "professional": "Fachmann",
+    "viewDetails": "Details anzeigen",
+    "bookNow": "Jetzt reservieren",
+    "viewProfile": "Profil anzeigen",
+    "bookWith": "Reservieren bei"
+  },
+  "service": {
+    "availableWith": "Verfügbar bei",
+    "bookWith": "Reservieren bei",
+    "bookNow": "Jetzt reservieren"
+  },
+  "professional": {
+    "services": "Dienstleistungen",
+    "bookAppointment": "Termin anfragen"
+  },
+  "calendar": {
+    "previousWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "today": "Heute",
+    "noSlots": "Keine verfügbaren Zeiten",
+    "selected": "Ausgewählt",
+    "clearSelection": "Auswahl löschen",
+    "selectSlot": "Zeit auswählen"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+    "goHome": "Zurück zur Startseite",
+    "viewServices": "Dienstleistungen anzeigen"
+  },
+  "footer": {
+    "rights": "Alle Rechte vorbehalten.",
+    "tagline": "Vereinfachte Terminverwaltung",
+    "privacy": "Datenschutz",
+    "terms": "AGB",
+    "contact": "Kontakt"
+  },
+  "professionals": {
+    "title": "Unsere Fachleute",
+    "subtitle": "Lernen Sie unser Team kennen",
+    "services": "Dienstleistungen",
+    "noProfessionals": "Keine Fachleute verfügbar"
+  },
+  "booking": {
+    "title": "Termin reservieren",
+    "step1": "Ihre Daten",
+    "step2": "Reservierungsmethode",
+    "step3": "Zeit auswählen",
+    "personal": {
+      "name": "Name",
+      "namePlaceholder": "Ihr vollständiger Name",
+      "email": "E-Mail",
+      "emailPlaceholder": "ihre@email.com",
+      "phone": "Telefon",
+      "phonePlaceholder": "612 345 678",
+      "professional": "Fachmann (optional)",
+      "selectProfessional": "Fachmann auswählen",
+      "anyProfessional": "Beliebiger Fachmann"
+    },
+    "method": {
+      "title": "Wie möchten Sie reservieren?",
+      "firstAvailable": "Erste verfügbare Sitzung",
+      "firstAvailableDesc": "Wir assignieren Ihnen die erste freie Zeit",
+      "chooseTime": "Tag und Uhrzeit wählen",
+      "chooseTimeDesc": "Navigieren Sie durch den Kalender und wählen Sie selbst"
+    },
+    "calendar": {
+      "title": "Wählen Sie eine Zeit",
+      "week": "Woche",
+      "today": "Heute",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "available": "Verfügbar",
+      "occupied": "Besetzt",
+      "noSlots": "Keine verfügbaren Zeiten",
+      "selectSlot": "Zeit auswählen"
+    },
+    "success": {
+      "title": "Termin reserviert!",
+      "message": "Ihr Termin wurde bestätigt",
+      "bookingId": "Buchungsnummer",
+      "service": "Dienstleistung",
+      "professional": "Fachmann",
+      "dateTime": "Datum und Uhrzeit",
+      "addToCalendar": "Zu Google Calendar hinzufügen",
+      "backToHome": "Zurück zur Startseite"
+    },
+    "continue": "Weiter",
+    "back": "Zurück",
+    "confirm": "Reservierung bestätigen",
+    "errors": {
+      "nameRequired": "Der Name ist erforderlich",
+      "emailRequired": "Die E-Mail ist erforderlich",
+      "emailInvalid": "Geben Sie eine gültige E-Mail ein",
+      "phoneRequired": "Das Telefon ist erforderlich",
+      "phoneInvalid": "Geben Sie eine gültige Telefonnummer ein"
+    }
+  },
+  "errors": {
+    "companyNotFound": "Unternehmen nicht gefunden",
+    "bookingFailed": "Fehler beim Erstellen der Reservierung",
+    "networkError": "Verbindungsfehler",
+    "tryAgain": "Erneut versuchen"
+  }
+}

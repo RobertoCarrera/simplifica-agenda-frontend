@@ -5,6 +5,20 @@
 @layer base {
   :root {
     color-scheme: light;
+    /* ── Theme tokens (override per component with var()) ── */
+    --color-primary: #4f46e5;
+    --color-primary-hover: #4338ca;
+    --color-primary-light: #eef2ff;
+    --color-primary-text: #ffffff;
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f8fafc;
+    --color-text: #0f172a;
+    --color-text-secondary: #64748b;
+    --color-text-disabled: #94a3b8;
+    --color-border: #e2e8f0;
+    --color-error: #dc2626;
+    --color-success: #16a34a;
   }
 
   html {
@@ -15,6 +29,8 @@
 
   body {
     @apply font-sans text-slate-800 bg-white m-0 p-0;
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -45,6 +61,8 @@
 
   .card {
     @apply bg-white border border-slate-200 rounded-xl p-6 shadow-sm;
+    background: var(--color-surface);
+    border-color: var(--color-border);
   }
 
   .btn {
@@ -64,10 +82,14 @@
 
     label {
       @apply block text-sm font-medium text-slate-800 mb-1;
+      color: var(--color-text);
     }
 
     input, select, textarea {
       @apply w-full px-4 py-3 border border-slate-200 rounded-md bg-white text-slate-800 transition-colors duration-150;
+      background: var(--color-surface);
+      border-color: var(--color-border);
+      color: var(--color-text);
       &:focus { @apply outline-none border-primary shadow-[0_0_0_3px_#d1fae5]; }
       &.invalid { @apply border-error; }
     }
@@ -78,18 +100,36 @@
   }
 }
 
+/* ── Dark mode ── */
 html.dark {
   color-scheme: dark;
-  @apply bg-slate-900 text-slate-100;
+
+  --color-primary: #818cf8;
+  --color-primary-hover: #a5b4fc;
+  --color-primary-light: #1e1b4b;
+  --color-primary-text: #ffffff;
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-disabled: #64748b;
+  --color-border: #334155;
+  --color-error: #f87171;
+  --color-success: #4ade80;
 
   body {
     @apply bg-slate-900 text-slate-100;
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   h1, h2, h3, h4, h5, h6, p { @apply text-slate-100; }
 
   .card {
     @apply bg-slate-800 border-slate-700;
+    background: var(--color-surface);
+    border-color: var(--color-border);
   }
 
   .btn-secondary {
@@ -100,6 +140,9 @@ html.dark {
     label { @apply text-slate-300; }
     input, select, textarea {
       @apply bg-slate-800 border-slate-600 text-slate-100 !important;
+      background: var(--color-surface);
+      border-color: var(--color-border);
+      color: var(--color-text);
       &:focus { @apply border-primary shadow-[0_0_0_3px_#064e3b]; }
     }
   }

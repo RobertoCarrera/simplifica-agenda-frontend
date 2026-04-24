@@ -4,8 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class StripHtmlPipe implements PipeTransform {
   transform(value: string | undefined | null): string {
     if (!value) return '';
-    const div = document.createElement('div');
-    div.innerHTML = value;
-    return div.textContent ?? div.innerText ?? '';
+    // Use regex to strip HTML tags — avoids XSS risk of innerHTML parsing
+    return value.replace(/<[^>]*>/g, '');
   }
 }

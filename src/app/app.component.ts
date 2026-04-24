@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { FooterComponent } from "./shared/ui/footer.component";
 import { TranslocoService } from "@jsverse/transloco";
@@ -25,6 +25,7 @@ import { TranslocoService } from "@jsverse/transloco";
 
       .app-container {
         flex: 1;
+        padding: 0 24px;
         font-family:
           "Inter",
           -apple-system,
@@ -36,8 +37,16 @@ import { TranslocoService } from "@jsverse/transloco";
     `,
   ],
 })
-export class AppComponent {
-  constructor() {
+export class AppComponent implements OnInit {
+  ngOnInit() {
+    // Detect and react to browser dark mode preference — applies class to <html>
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    document.documentElement.classList.toggle("dark", mq?.matches ?? false);
+    mq?.addEventListener("change", (e) => {
+      document.documentElement.classList.toggle("dark", e.matches);
+    });
+
+    // Language
     const transloco = inject(TranslocoService);
     const available = ["es", "ca"];
     const browserLang = (navigator.languages?.[0] ?? navigator.language ?? "es")

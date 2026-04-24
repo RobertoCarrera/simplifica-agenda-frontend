@@ -27,7 +27,9 @@ import { TranslocoModule } from "@jsverse/transloco";
   styles: [
     `
       .site-footer {
-        @apply bg-slate-50 border-t border-slate-200 px-4 py-6 mt-auto;
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-border);
+        @apply px-4 py-6 mt-auto;
       }
 
       .footer-container {
@@ -36,15 +38,22 @@ import { TranslocoModule } from "@jsverse/transloco";
 
       .footer-info { @apply flex flex-col gap-0.5; }
 
-      .copyright { @apply text-sm text-secondary m-0; }
+      .copyright { 
+        @apply text-sm m-0; 
+        color: var(--color-text-secondary);
+      }
 
-      .tagline { @apply text-xs text-slate-400 m-0; }
+      .tagline { 
+        @apply text-xs m-0; 
+        color: var(--color-text-disabled);
+      }
 
       .footer-links { @apply flex gap-6; }
 
       .footer-link {
-        @apply text-sm text-secondary no-underline transition-colors duration-150;
-        &:hover { @apply text-primary; }
+        @apply text-sm no-underline transition-colors duration-150;
+        color: var(--color-text-secondary);
+        &:hover { color: var(--color-primary); }
       }
 
       @media (max-width: 480px) {

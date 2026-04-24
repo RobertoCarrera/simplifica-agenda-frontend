@@ -2,7 +2,7 @@ import { TranslocoConfig } from "@jsverse/transloco";
 
 export const translocoConfig: TranslocoConfig = {
   defaultLang: "es",
-  availableLangs: ["es", "ca"],
+  availableLangs: ["es", "ca", "de"],
   reRenderOnLangChange: true,
   prodMode: false,
   failedRetries: 3,

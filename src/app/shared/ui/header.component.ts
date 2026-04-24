@@ -53,11 +53,13 @@ import { LanguageSwitcherComponent } from "./language-switcher.component";
     :host { display: block; }
 
     .site-header {
-      @apply bg-slate-50 border-b border-slate-200 sticky top-0 z-50;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      @apply sticky top-0 z-50;
     }
 
     .header-container {
-      @apply max-w-[1200px] mx-auto px-6 py-4 flex items-center gap-6;
+      @apply max-w-[1200px] mx-auto px-6 py-6 flex items-center gap-6;
     }
 
     .logo {
@@ -69,7 +71,8 @@ import { LanguageSwitcherComponent } from "./language-switcher.component";
     }
 
     .logo-text {
-      @apply text-xl font-bold text-primary;
+      @apply text-xl font-bold;
+      color: var(--color-primary);
     }
 
     .main-nav {
@@ -77,9 +80,10 @@ import { LanguageSwitcherComponent } from "./language-switcher.component";
     }
 
     .main-nav a {
-      @apply text-secondary font-medium no-underline px-3 py-2 rounded-md transition-all duration-150;
-      &:hover { @apply text-slate-800 bg-slate-100; }
-      &.active { @apply text-primary bg-emerald-50; }
+      @apply font-medium no-underline px-3 py-2 rounded-md transition-all duration-150;
+      color: var(--color-text-secondary);
+      &:hover { background: var(--color-surface-hover); color: var(--color-text); }
+      &.active { color: var(--color-primary); background: var(--color-primary-light); }
     }
 
     .header-actions {

@@ -281,19 +281,20 @@ import { applyBrandingColors } from "../../shared/branding.utils";
       :host { display: block; }
 
       .wizard-page {
-        @apply max-w-[680px] mx-auto px-4 pt-6 pb-16;
+        @apply max-w-[680px] mx-auto px-6 pt-6 pb-16;
       }
 
       /* ── Back link ── */
       .back-link {
-        @apply inline-flex items-center gap-2 text-sm text-secondary no-underline mb-6 transition-colors duration-150;
-        &:hover { @apply text-slate-800; }
+        @apply inline-flex items-center gap-2 text-sm no-underline mb-6 transition-colors duration-150;
+        color: var(--color-text-secondary);
+        &:hover { color: var(--color-text); }
       }
 
       /* ── Service summary ── */
       .service-summary-skeleton {
         @apply h-14 rounded-xl mb-6;
-        background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+        background: linear-gradient(90deg, var(--color-border) 25%, var(--color-surface-hover) 50%, var(--color-border) 75%);
         background-size: 200% 100%;
         animation: shimmer 1.5s infinite;
       }
@@ -302,113 +303,132 @@ import { applyBrandingColors } from "../../shared/branding.utils";
         100% { background-position: -200% 0; }
       }
       .service-summary {
-        @apply flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 mb-6 shadow-sm;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply flex items-center gap-3 rounded-xl px-4 py-3 mb-6;
       }
-      .service-dot {
-        @apply w-2.5 h-2.5 rounded-full flex-shrink-0;
-      }
+      .service-dot { @apply w-2.5 h-2.5 rounded-full flex-shrink-0; }
       .service-summary-info {
         @apply flex items-center gap-3 flex-wrap;
-        strong { @apply text-sm text-slate-800; }
+        strong { @apply text-sm; color: var(--color-text); }
       }
       .service-summary-meta {
-        @apply text-xs text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5;
+        @apply text-xs rounded-full px-2 py-0.5;
+        background: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-secondary);
       }
-      .service-summary-price {
-        @apply text-sm font-bold text-secondary;
-      }
+      .service-summary-price { @apply text-sm font-bold; color: var(--color-text-secondary); }
 
       /* ── Progress bar ── */
-      .progress-bar {
-        @apply flex items-center justify-center gap-0 mb-8;
-      }
+      .progress-bar { @apply flex items-center justify-center gap-0 mb-8; }
       .progress-step {
         @apply flex flex-col items-center gap-1;
         .ps-circle {
-          @apply w-8 h-8 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-sm font-semibold text-slate-400 transition-all duration-150;
+          @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-150;
+          background: var(--color-surface-hover);
+          border: 2px solid var(--color-border);
+          color: var(--color-text-disabled);
         }
-        .ps-label {
-          @apply text-[0.65rem] text-slate-400 whitespace-nowrap;
-        }
-        &.active .ps-circle { @apply bg-primary border-primary text-white; }
-        &.active .ps-label { @apply text-primary font-medium; }
-        &.done .ps-circle { @apply bg-primary border-primary text-white; }
+        .ps-label { @apply text-[0.65rem] whitespace-nowrap; color: var(--color-text-disabled); }
+        &.active .ps-circle { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-text); }
+        &.active .ps-label { color: var(--color-primary); font-weight: 500; }
+        &.done .ps-circle { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-text); }
       }
       .progress-line {
-        @apply w-8 h-0.5 bg-slate-200 mb-5 flex-shrink-0 transition-colors duration-150;
-        &.done { @apply bg-primary; }
+        @apply w-8 h-0.5 mb-5 flex-shrink-0 transition-colors duration-150;
+        background: var(--color-border);
+        &.done { background: var(--color-primary); }
       }
 
       /* ── Step card ── */
       .step-card {
-        @apply bg-white border border-slate-200 rounded-xl p-6 shadow-sm;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply rounded-xl p-6;
       }
       .step-card-wide { @apply max-w-full w-full; }
-      .step-title {
-        @apply text-xl font-bold text-slate-800 m-0 mb-6;
-      }
+      .step-title { @apply text-xl font-bold m-0 mb-6; color: var(--color-text); }
 
       /* ── Form ── */
       .form-group {
         @apply mb-4;
         label {
-          @apply block text-sm font-medium text-slate-800 mb-1;
+          @apply block text-sm font-medium mb-1;
+          color: var(--color-text);
         }
       }
       .form-control {
-        @apply block w-full px-3 py-2 border border-slate-200 rounded-md text-sm bg-white text-slate-800 transition-colors duration-150;
-        &:focus { @apply outline-none border-primary; }
-        &.invalid { @apply border-error; }
+        @apply block w-full px-3 py-2 rounded-md text-sm transition-colors duration-150;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        &:focus { outline: none; border-color: var(--color-primary); }
+        &.invalid { border-color: var(--color-error); }
       }
-      .error-msg { @apply text-xs text-error mt-1 block; }
+      .error-msg { @apply text-xs mt-1 block; color: var(--color-error); }
 
       /* ── Step actions ── */
       .step-actions {
-        @apply flex justify-end gap-3 mt-6 border-t border-slate-200 pt-4;
+        @apply flex justify-end gap-3 mt-6 pt-4;
+        border-top: 1px solid var(--color-border);
       }
       .step-actions-back { @apply justify-start; }
 
       /* ── Method cards ── */
       .method-cards { @apply grid gap-3; }
       .method-card {
-        @apply flex items-center gap-4 px-5 py-4 border-2 border-slate-200 rounded-xl bg-white cursor-pointer text-left w-full transition-all duration-150;
-        &:hover { @apply border-primary shadow-sm; }
+        background: var(--color-surface);
+        border: 2px solid var(--color-border);
+        @apply flex items-center gap-4 px-5 py-4 rounded-xl cursor-pointer text-left w-full transition-all duration-150;
+        &:hover { border-color: var(--color-primary); }
       }
       .method-icon { @apply text-2xl flex-shrink-0; }
       .method-info {
         @apply flex-1 min-w-0;
-        strong { @apply block text-sm text-slate-800 mb-0.5; }
-        p { @apply text-xs text-slate-400 m-0; }
+        strong { @apply block text-sm mb-0.5; color: var(--color-text); }
+        p { @apply text-xs m-0; color: var(--color-text-disabled); }
       }
 
       /* ── Auto searching ── */
       .auto-searching, .availability-loading {
-        @apply flex flex-col items-center gap-4 py-10 text-secondary text-sm;
+        @apply flex flex-col items-center gap-4 py-10 text-sm;
+        color: var(--color-text-secondary);
       }
       .auto-error {
-        @apply px-4 py-4 border border-error rounded-md text-error text-sm text-center mb-4;
-        p { @apply m-0 mb-3; }
+        @apply px-4 py-4 border rounded-md text-sm text-center mb-4;
+        border-color: var(--color-error);
+        color: var(--color-error);
       }
 
       /* ── Submit error ── */
       .submit-error {
-        @apply mt-3 px-4 py-3 bg-red-50 border border-red-200 rounded-md text-sm text-error text-center;
+        @apply mt-3 px-4 py-3 rounded-md text-sm text-center;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: var(--color-error);
       }
 
       /* ── Success ── */
       .success-card {
-        @apply flex flex-col items-center gap-3 px-6 py-12 bg-white border border-slate-200 rounded-xl text-center;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        @apply flex flex-col items-center gap-3 px-6 py-12 rounded-xl text-center;
       }
       .success-icon {
-        @apply w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 text-2xl font-bold flex items-center justify-center;
+        @apply w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold;
+        background: #dcfce7;
+        color: #16a34a;
       }
-      .success-title { @apply text-2xl font-bold text-slate-800 m-0; }
-      .success-id { @apply text-sm text-slate-400 m-0; }
-      .success-detail { @apply text-base text-secondary m-0; }
+      .success-title { @apply text-2xl font-bold m-0; color: var(--color-text); }
+      .success-id { @apply text-sm m-0; color: var(--color-text-disabled); }
+      .success-detail { @apply text-base m-0; color: var(--color-text-secondary); }
 
       /* ── Spinner ── */
       .spinner {
-        @apply w-8 h-8 border-[3px] border-slate-200 border-t-primary rounded-full animate-spin;
+        @apply w-8 h-8 border-[3px] rounded-full animate-spin;
+        border-color: var(--color-border);
+        border-top-color: var(--color-primary);
       }
       .spinner-sm { @apply w-4 h-4 border-2; }
 
@@ -418,44 +438,43 @@ import { applyBrandingColors } from "../../shared/branding.utils";
         &:disabled { @apply opacity-50 cursor-not-allowed; }
       }
       .btn-primary {
-        @apply bg-primary text-white;
-        &:hover:not(:disabled) { @apply bg-primary-hover; }
+        background: var(--color-primary);
+        color: var(--color-primary-text);
+        &:hover:not(:disabled) { background: var(--color-primary-hover); }
       }
       .btn-ghost {
-        @apply bg-transparent text-secondary;
-        &:hover { @apply text-slate-800; }
+        background: transparent;
+        color: var(--color-text-secondary);
+        &:hover { color: var(--color-text); }
       }
       .btn-outline {
-        @apply bg-transparent border border-slate-200 text-slate-800;
-        &:hover { @apply border-primary text-primary; }
+        background: transparent;
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        &:hover { border-color: var(--color-primary); color: var(--color-primary); }
       }
       .btn-full { @apply w-full; }
 
       /* ── Professional selector ── */
       .prof-selector { @apply flex flex-col gap-2; }
       .prof-option {
-        @apply flex items-center gap-3 px-4 py-3 border-2 border-slate-200 rounded-xl bg-white cursor-pointer text-left w-full transition-all duration-150;
-        &:hover { @apply border-primary; }
-        &.prof-option--selected { @apply border-primary; }
+        background: var(--color-surface);
+        border: 2px solid var(--color-border);
+        @apply flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-left w-full transition-all duration-150;
+        &:hover { border-color: var(--color-primary); }
+        &.prof-option--selected { border-color: var(--color-primary); }
       }
-      .prof-option-avatar {
-        @apply w-10 h-10 rounded-full object-cover flex-shrink-0;
-      }
-      .prof-option-avatar--initials {
-        @apply flex items-center justify-center text-sm font-bold;
-      }
+      .prof-option-avatar { @apply w-10 h-10 rounded-full object-cover flex-shrink-0; }
+      .prof-option-avatar--initials { @apply flex items-center justify-center text-sm font-bold; }
       .prof-option-avatar--any {
-        @apply bg-slate-100 flex items-center justify-center;
-        svg { @apply w-5 h-5 text-slate-400; }
+        @apply flex items-center justify-center;
+        background: var(--color-surface-hover);
+        svg { @apply w-5 h-5; color: var(--color-text-disabled); }
       }
       .prof-option-info { @apply flex-1 min-w-0 flex flex-col gap-0.5; }
-      .prof-option-name {
-        @apply text-sm font-semibold text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis;
-      }
-      .prof-option-title {
-        @apply text-xs text-slate-400 whitespace-nowrap overflow-hidden text-ellipsis;
-      }
-      .prof-option-check { @apply w-5 h-5 flex-shrink-0 text-primary; }
+      .prof-option-name { @apply text-sm font-semibold whitespace-nowrap overflow-hidden text-ellipsis; color: var(--color-text); }
+      .prof-option-title { @apply text-xs whitespace-nowrap overflow-hidden text-ellipsis; color: var(--color-text-disabled); }
+      .prof-option-check { @apply w-5 h-5 flex-shrink-0; color: var(--color-primary); }
     `,
   ],
 })

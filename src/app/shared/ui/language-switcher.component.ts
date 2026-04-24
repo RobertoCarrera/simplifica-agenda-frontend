@@ -24,6 +24,14 @@ const STORAGE_KEY = "simplify-agenda-lang";
       >
         CA
       </button>
+      <span class="divider">|</span>
+      <button
+        class="lang-btn"
+        [class.active]="currentLang() === 'de'"
+        (click)="setLanguage('de')"
+      >
+        DE
+      </button>
     </div>
   `,
   styles: [
@@ -48,20 +56,20 @@ export class LanguageSwitcherComponent {
   constructor() {
     // Load saved preference or detect from browser
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && ["es", "ca"].includes(saved)) {
+    if (saved && ["es", "ca", "de"].includes(saved)) {
       this.currentLang.set(saved);
       this.transloco.setActiveLang(saved);
     } else {
       // Try to detect from browser
       const browserLang = this.transloco.getActiveLang();
-      if (browserLang === "ca") {
-        this.currentLang.set("ca");
-        this.transloco.setActiveLang("ca");
+      if (browserLang === "ca" || browserLang === "de") {
+        this.currentLang.set(browserLang);
+        this.transloco.setActiveLang(browserLang);
       }
     }
   }
 
-  setLanguage(lang: "es" | "ca") {
+  setLanguage(lang: "es" | "ca" | "de") {
     this.currentLang.set(lang);
     this.transloco.setActiveLang(lang);
     localStorage.setItem(STORAGE_KEY, lang);
