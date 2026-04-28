@@ -1,0 +1,79 @@
+<div class="cookie-consent-container" *ngIf="showBanner()">
+  <div class="cookie-backdrop" *ngIf="showSettings()" (click)="closeSettings()"></div>
+
+  <div class="cookie-banner" [class.show-settings]="showSettings()">
+    <!-- Main Banner -->
+    <div class="cookie-main" *ngIf="!showSettings()">
+      <div class="cookie-content">
+        <h3 class="cookie-title">{{ "cookie.title" | transloco }}</h3>
+        <p class="cookie-description">{{ "cookie.description" | transloco }}</p>
+      </div>
+      <div class="cookie-actions">
+        <button class="btn-configure" (click)="openSettings()">
+          {{ "cookie.configure" | transloco }}
+        </button>
+        <button class="btn-accept" (click)="acceptAll()">
+          {{ "cookie.acceptAll" | transloco }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="cookie-settings" *ngIf="showSettings()">
+      <h3 class="cookie-title">{{ "cookie.configure" | transloco }}</h3>
+
+      <div class="cookie-category">
+        <div class="category-header">
+          <span class="category-name">{{ "cookie.essential" | transloco }}</span>
+          <span class="category-badge">Siempre activas</span>
+        </div>
+        <p class="category-desc">{{ "cookie.essentialDesc" | transloco }}</p>
+        <div class="toggle-wrapper disabled">
+          <input type="checkbox" id="essential" [checked]="true" disabled />
+          <label for="essential"></label>
+        </div>
+      </div>
+
+      <div class="cookie-category">
+        <div class="category-header">
+          <span class="category-name">{{ "cookie.analytics" | transloco }}</span>
+        </div>
+        <p class="category-desc">{{ "cookie.analyticsDesc" | transloco }}</p>
+        <div class="toggle-wrapper">
+          <input
+            type="checkbox"
+            id="analytics"
+            [checked]="consent().analytics"
+            (change)="toggleAnalytics()"
+          />
+          <label for="analytics"></label>
+        </div>
+      </div>
+
+      <div class="cookie-category">
+        <div class="category-header">
+          <span class="category-name">{{ "cookie.marketing" | transloco }}</span>
+        </div>
+        <p class="category-desc">{{ "cookie.marketingDesc" | transloco }}</p>
+        <div class="toggle-wrapper">
+          <input
+            type="checkbox"
+            id="marketing"
+            [checked]="consent().marketing"
+            (change)="toggleMarketing()"
+          />
+          <label for="marketing"></label>
+        </div>
+      </div>
+
+      <div class="cookie-actions settings-actions">
+        <button class="btn-back" (click)="closeSettings()">
+          {{ "common.back" | transloco }}
+        </button>
+        <button class="btn-save" (click)="saveSettings()">
+          {{ "cookie.save" | transloco }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

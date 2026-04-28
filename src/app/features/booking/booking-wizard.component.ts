@@ -15,6 +15,7 @@ import { TurnstileService } from "../../services/turnstile.service";
 import { WeeklyCalendarComponent } from "../calendar/weekly-calendar.component";
 import { TimeSlot } from "../calendar/time-slot.component";
 import { applyBrandingColors } from "../../shared/branding.utils";
+import { environment } from "../../environments/environment";
 
 @Component({
   selector: "app-booking-wizard",
@@ -72,7 +73,7 @@ import { applyBrandingColors } from "../../shared/branding.utils";
               <span class="ps-label">
                 @switch (n) {
                   @case (1) { Tus datos }
-                  @case (2) { Cuándo }
+                  @case (2) { Fecha y hora }
                   @case (3) { Confirmar }
                 }
               </span>
@@ -153,6 +154,16 @@ import { applyBrandingColors } from "../../shared/branding.utils";
             </div>
 
             <div class="form-group">
+              <label for="clientSurname">Apellidos *</label>
+              <input id="clientSurname" type="text" class="form-control"
+                [(ngModel)]="formSurname" placeholder="Tus apellidos"
+                [class.invalid]="errors()['surname']" />
+              @if (errors()['surname']) {
+                <span class="error-msg">{{ errors()['surname'] }}</span>
+              }
+            </div>
+
+            <div class="form-group">
               <label for="clientPhone">Teléfono *</label>
               <input id="clientPhone" type="tel" class="form-control"
                 [(ngModel)]="formPhone" placeholder="Tu número de teléfono"
@@ -170,6 +181,31 @@ import { applyBrandingColors } from "../../shared/branding.utils";
               @if (errors()['email']) {
                 <span class="error-msg">{{ errors()['email'] }}</span>
               }
+            </div>
+
+            <!-- Session type -->
+            <div class="form-group">
+              <label class="block text-sm font-medium text-slate-800 mb-2">Modalidad</label>
+              <div class="flex rounded-xl overflow-hidden border border-slate-200">
+                <button type="button"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors"
+                  [class.bg-primary]="formSessionType === 'presencial'"
+                  [class.text-white]="formSessionType === 'presencial'"
+                  [class.bg-white]="formSessionType !== 'presencial'"
+                  [class.text-slate-600]="formSessionType !== 'presencial'"
+                  (click)="formSessionType = 'presencial'">
+                  <i class="fas fa-map-marker-alt"></i> Presencial
+                </button>
+                <button type="button"
+                  class="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors border-l border-slate-200"
+                  [class.bg-primary]="formSessionType === 'online'"
+                  [class.text-white]="formSessionType === 'online'"
+                  [class.bg-white]="formSessionType !== 'online'"
+                  [class.text-slate-600]="formSessionType !== 'online'"
+                  (click)="formSessionType = 'online'">
+                  <i class="fas fa-video"></i> Online
+                </button>
+              </div>
             </div>
 
             <div class="step-actions">
@@ -253,25 +289,100 @@ import { applyBrandingColors } from "../../shared/branding.utils";
 
             <div class="step-actions">
               <button class="btn btn-ghost" (click)="step.set(2)">← Atrás</button>
-              <button
-                class="btn btn-primary"
-                [disabled]="!selectedSlot() || submitting()"
-                (click)="confirmBooking()"
-              >
-                @if (submitting()) {
-                  <div class="spinner spinner-sm"></div>
-                  Enviando...
-                } @else if (selectedSlot()) {
-                  Reservar {{ formatSlotDate(selectedSlot()!) }}
-                } @else {
-                  Selecciona una hora
-                }
+              <button class="btn btn-primary"
+                [disabled]="!selectedSlot()"
+                (click)="goToPayment()">
+                Continuar
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:1rem;height:1rem">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
               </button>
+            </div>
+          </div>
+        }
+
+        <!-- ── STEP 4: Summary + Payment + Confirm ──────── -->
+        @if (step() === 4) {
+          <div class="step-card">
+            <h2 class="step-title">Resumen y confirmación</h2>
+
+            <!-- Booking summary -->
+            <div class="booking-summary">
+              <div class="summary-row">
+                <span class="summary-label">Servicio</span>
+                <span class="summary-value">{{ service()?.name }}</span>
+              </div>
+              @if (selectedSlot()) {
+                <div class="summary-row">
+                  <span class="summary-label">Fecha y hora</span>
+                  <span class="summary-value">{{ formatSlotDate(selectedSlot()!) }}</span>
+                </div>
+              }
+              <div class="summary-row">
+                <span class="summary-label">Modalidad</span>
+                <span class="summary-value">
+                  @if (formSessionType === 'presencial') { Presencial }
+                  @else { Online }
+                </span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Cliente</span>
+                <span class="summary-value">{{ formName }} {{ formSurname }}</span>
+              </div>
+              @if (service()?.price != null) {
+                <div class="summary-row summary-row--total">
+                  <span class="summary-label">Total</span>
+                  <span class="summary-value">{{ service()?.price }}€</span>
+                </div>
+              }
+            </div>
+
+            <!-- Payment method -->
+            <div class="payment-methods">
+              <p class="payment-label">Método de pago</p>
+              <div class="payment-cards">
+                <button type="button" class="payment-card" [class.payment-card--selected]="paymentMethod === 'stripe'"
+                  (click)="paymentMethod = 'stripe'">
+                  <span class="payment-icon">💳</span>
+                  <span class="payment-name">Tarjeta (Stripe)</span>
+                  @if (paymentMethod === 'stripe') {
+                    <svg class="payment-check" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>
+                  }
+                </button>
+                <button type="button" class="payment-card" [class.payment-card--selected]="paymentMethod === 'paypal'"
+                  (click)="paymentMethod = 'paypal'">
+                  <span class="payment-icon">🔵</span>
+                  <span class="payment-name">PayPal</span>
+                  @if (paymentMethod === 'paypal') {
+                    <svg class="payment-check" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>
+                  }
+                </button>
+                <button type="button" class="payment-card" [class.payment-card--selected]="paymentMethod === 'cash'"
+                  (click)="paymentMethod = 'cash'">
+                  <span class="payment-icon">💵</span>
+                  <span class="payment-name">Efectivo / Tarjeta en centro</span>
+                  @if (paymentMethod === 'cash') {
+                    <svg class="payment-check" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd"/></svg>
+                  }
+                </button>
+              </div>
             </div>
 
             @if (submitError()) {
               <div class="submit-error">{{ submitError() }}</div>
             }
+
+            <div class="step-actions">
+              <button class="btn btn-ghost" (click)="step.set(3)">← Atrás</button>
+              <button class="btn btn-primary" [disabled]="submitting()" (click)="confirmBooking()">
+                @if (submitting()) {
+                  <div class="spinner spinner-sm"></div>
+                  Procesando...
+                } @else {
+                  Confirmar reserva
+                }
+              </button>
+            </div>
           </div>
         }
       }
@@ -479,9 +590,12 @@ export class BookingWizardComponent implements OnInit {
 
   // Form fields (step 1)
   formName = "";
+  formSurname = "";
   formPhone = "";
   formEmail = "";
   formProfessionalId = "";
+  formSessionType: 'presencial' | 'online' = 'presencial';
+  paymentMethod: 'stripe' | 'paypal' | 'cash' = 'cash';
   errors = signal<Record<string, string>>({});
 
   // Wizard state
@@ -538,6 +652,7 @@ export class BookingWizardComponent implements OnInit {
   goStep2() {
     const errs: Record<string, string> = {};
     if (!this.formName.trim()) errs["name"] = "El nombre es obligatorio";
+    if (!this.formSurname.trim()) errs["surname"] = "Los apellidos son obligatorios";
     if (!this.formPhone.trim()) errs["phone"] = "El teléfono es obligatorio";
     if (!this.formEmail.trim()) errs["email"] = "El email es obligatorio";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.formEmail))
@@ -552,6 +667,11 @@ export class BookingWizardComponent implements OnInit {
     this.autoSearching.set(true);
     const weekStart = this.availabilityService.getWeekStart(new Date());
     this.searchAutoSlot(weekStart, 0);
+  }
+
+  goToPayment() {
+    if (!this.selectedSlot()) return;
+    this.step.set(4);
   }
 
   private searchAutoSlot(weekStart: Date, weeksChecked: number) {
@@ -660,27 +780,84 @@ export class BookingWizardComponent implements OnInit {
         service_id: svc.id,
         professional_id: this.formProfessionalId || undefined,
         client_name: this.formName,
+        client_surname: this.formSurname,
         client_email: this.formEmail,
         client_phone: this.formPhone,
+        session_type: this.formSessionType,
+        payment_method: this.paymentMethod,
         datetime,
         turnstile_token,
       })
       .subscribe({
-        next: (res) => {
-          this.submitting.set(false);
-          if (res.success) {
-            this.bookingId.set(res.booking_id ?? null);
-            this.step.set(4);
-          } else {
-            this.submitError.set(res.message ?? "Error al crear la reserva");
+        next: async (res) => {
+          if (!res.success || !res.booking_id) {
+            this.submitting.set(false);
+            this.submitError.set(res.message ?? 'Error al crear la reserva');
+            return;
+          }
+
+          const bookingId = res.booking_id;
+
+          // Cash / Card at venue → booking stays pending, show confirmation directly
+          if (this.paymentMethod === 'cash') {
+            this.submitting.set(false);
+            this.bookingId.set(bookingId);
+            sessionStorage.setItem('lastBookingId', bookingId);
+            const details = {
+              serviceName: this.service()?.name ?? '',
+              dateTime: this.formatSlotDate(slot),
+              datetimeIso: datetime,
+              durationMinutes: this.service()?.duration_minutes ?? 60,
+            };
+            sessionStorage.setItem('lastBookingDetails', JSON.stringify(details));
+            this.router.navigate(['/confirmacion', bookingId]);
+            return;
+          }
+
+          // Stripe / PayPal → create payment link and redirect
+          try {
+            const response = await fetch(`${environment.bffBaseUrl}/create-public-payment-link`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                bookingId,
+                provider: this.paymentMethod,
+                amount: svc.price ?? 0,
+                currency: 'EUR',
+                description: `Reserva de ${this.formName} ${this.formSurname} — ${svc.name}`,
+                customerEmail: this.formEmail,
+                customerName: `${this.formName} ${this.formSurname}`,
+                serviceName: svc.name,
+                slug: this.slug(),
+              }),
+            });
+
+            const paymentData = await response.json();
+            if (!response.ok || paymentData.error) {
+              throw new Error(paymentData.error ?? 'Error creando el pago');
+            }
+
+            // Redirect to Stripe Checkout or PayPal approval URL
+            const redirectUrl = paymentData.checkoutUrl ?? paymentData.approvalUrl;
+            if (redirectUrl) {
+              window.location.href = redirectUrl;
+            } else {
+              throw new Error('No se recibió URL de pago');
+            }
+          } catch (paymentErr: any) {
+            this.submitting.set(false);
+            this.submitError.set(paymentErr.message ?? 'Error al procesar el pago. Inténtalo de nuevo.');
           }
         },
         error: () => {
           this.submitting.set(false);
-          this.submitError.set("No se pudo crear la reserva. Inténtalo de nuevo.");
+          this.submitError.set('No se pudo crear la reserva. Inténtalo de nuevo.');
         },
       });
   }
+
 
   // ── Helpers ───────────────────────────────────────────────
   onAvatarError(id: string): void {

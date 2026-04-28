@@ -2,17 +2,19 @@ import { Component, inject } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { FooterComponent } from "./shared/ui/footer.component";
 import { TranslocoService } from "@jsverse/transloco";
+import { CookieConsentComponent } from "./shared/components/cookie-consent/cookie-consent.component";
 
 @Component({
   selector: "app-root",
   standalone: true,
-  imports: [RouterOutlet, FooterComponent],
+  imports: [RouterOutlet, FooterComponent, CookieConsentComponent],
   template: `
     <div class="app-layout">
       <main class="app-container">
         <router-outlet></router-outlet>
       </main>
       <app-footer />
+      <app-cookie-consent />
     </div>
   `,
   styles: [
