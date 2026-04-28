@@ -69,8 +69,11 @@ export interface CreateBookingPayload {
   service_id: string;
   professional_id?: string;
   client_name: string;
+  client_surname?: string;
   client_email: string;
   client_phone: string;
+  session_type?: 'presencial' | 'online';
+  payment_method?: 'stripe' | 'paypal' | 'cash';
   datetime: string;
   turnstile_token: string;
 }

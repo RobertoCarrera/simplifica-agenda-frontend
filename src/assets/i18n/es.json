@@ -128,5 +128,18 @@
     "bookingFailed": "Error al crear la reserva",
     "networkError": "Error de conexión",
     "tryAgain": "Intentar de nuevo"
+  },
+  "cookie": {
+    "title": "Usamos cookies",
+    "description": "Algunas cookies son necesarias para el funcionamiento del sitio. Otras son opcionales y nos ayudan a mejorar.",
+    "acceptAll": "Aceptar todas",
+    "configure": "Configurar",
+    "save": "Guardar",
+    "essential": "Esenciales",
+    "essentialDesc": "Necesarias para el funcionamiento",
+    "analytics": "Analíticas",
+    "analyticsDesc": "Nos ayudan a entender cómo usas el sitio",
+    "marketing": "Marketing",
+    "marketingDesc": "Para mostrarte anuncios relevantes"
   }
 }
