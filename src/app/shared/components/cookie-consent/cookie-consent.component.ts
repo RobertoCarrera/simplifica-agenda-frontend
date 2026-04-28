@@ -1,5 +1,6 @@
 import { Component, signal, inject, OnInit } from "@angular/core";
 import { TranslocoModule } from "@jsverse/transloco";
+import { NgIf } from "@angular/common";
 
 export interface CookieConsent {
   essential: boolean;
@@ -13,7 +14,7 @@ const CONSENT_KEY = "cookie_consent";
 @Component({
   selector: "app-cookie-consent",
   standalone: true,
-  imports: [TranslocoModule],
+  imports: [TranslocoModule, NgIf],
   templateUrl: "./cookie-consent.component.html",
   styleUrl: "./cookie-consent.component.scss",
 })
