@@ -1,0 +1,30 @@
+{
+  "name": "Simplifica Agenda",
+  "short_name": "Agenda",
+  "description": "Reserva tu cita online con nuestros profesionales de forma rápida y sencilla",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10B981",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["productivity", "business", "medical"],
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Reservar Cita",
+      "short_name": "Reservar",
+      "description": "Ir directamente a reservar una cita",
+      "url": "/"
+    }
+  ],
+  "prefer_related_applications": false
+}
