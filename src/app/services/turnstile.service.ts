@@ -69,7 +69,7 @@ export class TurnstileService {
   /**
    * Render Turnstile widget and get token
    */
-  render(elementId: string): Promise<string> {
+  render(elementId: string | HTMLElement): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!window.turnstile) {
         reject(new Error("Turnstile not loaded"));
