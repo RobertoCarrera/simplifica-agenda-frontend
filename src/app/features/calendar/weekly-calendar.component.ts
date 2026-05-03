@@ -238,18 +238,18 @@ import { BusyPeriod } from "../../services/booking-public.service";
 
       .slots-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        gap: var(--space-2);
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: var(--space-3);
       }
 
       .slot-btn {
-        padding: var(--space-3) var(--space-2);
+        padding: var(--space-4) var(--space-3);
         background: var(--color-surface);
         border: 2px solid var(--color-border);
-        border-radius: var(--radius-md);
+        border-radius: var(--radius-lg);
         cursor: pointer;
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-base);
+        font-weight: var(--font-weight-semibold);
         color: var(--color-text);
         transition: all var(--transition-fast);
         text-align: center;
@@ -258,12 +258,14 @@ import { BusyPeriod } from "../../services/booking-public.service";
       .slot-btn:hover {
         border-color: var(--color-primary);
         background: var(--color-primary-light);
+        transform: translateY(-1px);
       }
 
       .slot-btn--selected {
         background: var(--color-primary);
         border-color: var(--color-primary);
         color: var(--color-primary-text);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       }
 
       .no-slots-message {
