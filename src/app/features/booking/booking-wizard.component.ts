@@ -228,45 +228,104 @@ import { applyBrandingColors } from "../../shared/branding.utils";
           </div>
         }
 
-        <!-- ── STEP 3: Calendar ───────────────────────── -->
+        <!-- ── STEP 3: Calendar or Auto-confirm ───────────── -->
         @if (step() === 3) {
           <div class="step-card step-card-wide">
-            <h2 class="step-title">Selecciona tu horario</h2>
+            @if (isAutoMode()) {
+              <!-- Auto mode: show confirmation summary -->
+              <h2 class="step-title">Confirma tu reserva</h2>
+              
+              @if (selectedSlot()) {
+                <div class="auto-confirm-summary">
+                  <div class="summary-card">
+                    <div class="summary-icon">📅</div>
+                    <div class="summary-details">
+                      <span class="summary-label">Fecha y hora</span>
+                      <span class="summary-value">{{ formatSlotDate(selectedSlot()!) }}</span>
+                    </div>
+                  </div>
+                  <div class="summary-card">
+                    <div class="summary-icon">⏱️</div>
+                    <div class="summary-details">
+                      <span class="summary-label">Duración</span>
+                      <span class="summary-value">{{ service()?.duration_minutes }} minutos</span>
+                    </div>
+                  </div>
+                  @if (formProfessionalId) {
+                    <div class="summary-card">
+                      <div class="summary-icon"></div>
+                      <div class="summary-details">
+                        <span class="summary-label">Profesional</span>
+                        <span class="summary-value">{{ getProfessionalName() }}</span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else if (autoSearching()) {
+                <div class="auto-searching">
+                  <div class="spinner"></div>
+                  <p>Buscando la primera disponibilidad...</p>
+                </div>
+              }
 
-            @if (loadingAvailability()) {
-              <div class="availability-loading">
-                <div class="spinner"></div>
-                <p>Cargando disponibilidad...</p>
+              <div id="cf-turnstile"></div>
+
+              <div class="step-actions">
+                <button class="btn btn-ghost" (click)="goBackToMethodSelection()">← Cambiar método</button>
+                <button
+                  class="btn btn-primary"
+                  [disabled]="!selectedSlot() || submitting()"
+                  (click)="confirmBooking()"
+                >
+                  @if (submitting()) {
+                    <div class="spinner spinner-sm"></div>
+                    Enviando...
+                  } @else if (selectedSlot()) {
+                    Confirmar reserva
+                  } @else {
+                    Buscando disponibilidad...
+                  }
+                </button>
               </div>
             } @else {
-              <app-weekly-calendar
-                [busyPeriods]="busyPeriods()"
-                [serviceDuration]="service()?.duration_minutes ?? 30"
-                [initialDate]="calendarInitialDate()"
-                (slotSelected)="onSlotSelected($event)"
-                (weekChanged)="onWeekChanged($event)"
-              />
+              <!-- Manual mode: show calendar -->
+              <h2 class="step-title">Selecciona tu horario</h2>
+
+              @if (loadingAvailability()) {
+                <div class="availability-loading">
+                  <div class="spinner"></div>
+                  <p>Cargando disponibilidad...</p>
+                </div>
+              } @else {
+                <app-weekly-calendar
+                  [busyPeriods]="busyPeriods()"
+                  [serviceDuration]="service()?.duration_minutes ?? 30"
+                  [initialDate]="calendarInitialDate()"
+                  (slotSelected)="onSlotSelected($event)"
+                  (weekChanged)="onWeekChanged($event)"
+                />
+              }
+
+              <div id="cf-turnstile"></div>
+
+              <div class="step-actions">
+                <button class="btn btn-ghost" (click)="step.set(2)">← Atrás</button>
+                <button
+                  class="btn btn-primary"
+                  [disabled]="!selectedSlot() || submitting()"
+                  (click)="confirmBooking()"
+                >
+                  @if (submitting()) {
+                    <div class="spinner spinner-sm"></div>
+                    Enviando...
+                  } @else if (selectedSlot()) {
+                    Reservar {{ formatSlotDate(selectedSlot()!) }}
+                  } @else {
+                    Selecciona una hora
+                  }
+                </button>
+              </div>
             }
-
-            <div id="cf-turnstile"></div>
-
-            <div class="step-actions">
-              <button class="btn btn-ghost" (click)="step.set(2)">← Atrás</button>
-              <button
-                class="btn btn-primary"
-                [disabled]="!selectedSlot() || submitting()"
-                (click)="confirmBooking()"
-              >
-                @if (submitting()) {
-                  <div class="spinner spinner-sm"></div>
-                  Enviando...
-                } @else if (selectedSlot()) {
-                  Reservar {{ formatSlotDate(selectedSlot()!) }}
-                } @else {
-                  Selecciona una hora
-                }
-              </button>
-            </div>
 
             @if (submitError()) {
               <div class="submit-error">{{ submitError() }}</div>
@@ -401,6 +460,32 @@ import { applyBrandingColors } from "../../shared/branding.utils";
         color: var(--color-error);
       }
 
+      /* ── Auto confirm summary ── */
+      .auto-confirm-summary {
+        @apply flex flex-col gap-3 mb-6;
+      }
+      .summary-card {
+        background: var(--color-surface-hover);
+        border: 1px solid var(--color-border);
+        @apply flex items-center gap-4 px-5 py-4 rounded-xl;
+      }
+      .summary-icon {
+        @apply text-2xl flex-shrink-0 w-10 h-10 flex items-center justify-center;
+        background: var(--color-primary-light);
+        border-radius: var(--radius-md);
+      }
+      .summary-details {
+        @apply flex flex-col gap-0.5 flex-1;
+      }
+      .summary-label {
+        @apply text-xs font-medium;
+        color: var(--color-text-secondary);
+      }
+      .summary-value {
+        @apply text-sm font-semibold;
+        color: var(--color-text);
+      }
+
       /* ── Submit error ── */
       .submit-error {
         @apply mt-3 px-4 py-3 rounded-md text-sm text-center;
@@ -513,6 +598,7 @@ export class BookingWizardComponent implements OnInit {
   // Auto-booking search
   autoSearching = signal(false);
   autoError = signal<string | null>(null);
+  isAutoMode = signal(false); // true when user selected "Primera disponible"
 
   // Submission
   submitting = signal(false);
@@ -553,13 +639,14 @@ export class BookingWizardComponent implements OnInit {
         next: (res) => {
           const svc = res.services.find((s) => s.id === svcId) ?? null;
           this.service.set(svc);
-          const allProfs = (res.professionals ?? []).filter(p => !!p.display_name);
-          this.professionals.set(allProfs);
+          // Filtrar solo los profesionales que ofrecen este servicio
+          const serviceProfs = (svc?.professionals ?? []).filter(p => !!p.display_name);
+          this.professionals.set(serviceProfs);
           applyBrandingColors(res.company?.primary_color, res.company?.secondary_color);
 
           // Resolve pending professional slug to UUID if needed
           if (this._pendingProfessionalSlug) {
-            const target = allProfs.find(p => p.slug === this._pendingProfessionalSlug);
+            const target = serviceProfs.find(p => p.slug === this._pendingProfessionalSlug);
             if (target) {
               this.formProfessionalId = target.id;
             }
@@ -593,6 +680,7 @@ export class BookingWizardComponent implements OnInit {
   selectMethodAuto() {
     this.autoError.set(null);
     this.autoSearching.set(true);
+    this.isAutoMode.set(true);
     const weekStart = this.availabilityService.getWeekStart(new Date());
     this.searchAutoSlot(weekStart, 0);
   }
@@ -719,6 +807,18 @@ export class BookingWizardComponent implements OnInit {
   }
 
   // ── Helpers ───────────────────────────────────────────────
+  getProfessionalName(): string {
+    if (!this.formProfessionalId) return '';
+    const prof = this.professionals().find(p => p.id === this.formProfessionalId);
+    return prof?.display_name ?? '';
+  }
+
+  goBackToMethodSelection() {
+    this.isAutoMode.set(false);
+    this.selectedSlot.set(null);
+    this.step.set(2);
+  }
+
   onAvatarError(id: string): void {
     this.failedAvatarIds.update(s => new Set([...s, id]));
   }
