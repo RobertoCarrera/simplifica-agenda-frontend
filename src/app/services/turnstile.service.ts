@@ -10,7 +10,7 @@ declare global {
       ) => string;
       execute: (
         container: string | HTMLElement,
-        options: TurnstileOptions,
+        options?: TurnstileOptions,
       ) => Promise<string>;
       reset: (widgetId?: string) => void;
       remove: (widgetId: string) => void;
@@ -20,7 +20,7 @@ declare global {
 }
 
 interface TurnstileOptions {
-  sitekey: string;
+  sitekey?: string;
   callback?: (token: string) => void;
   "error-callback"?: () => void;
   "expired-callback"?: () => void;
@@ -108,8 +108,7 @@ export class TurnstileService {
         return;
       }
 
-      // For invisible mode, render with execution:"execute" first
-      // then call execute() to trigger the challenge
+      // Render with execution:"execute" - widget is created but challenge doesn't run yet
       this.widgetId = window.turnstile.render(container, {
         sitekey: environment.turnstileSiteKey,
         execution: "execute",
@@ -123,6 +122,14 @@ export class TurnstileService {
           reject(new Error("Turnstile token expired"));
         },
       });
+
+      // Trigger the challenge after a short delay to let widget initialize
+      setTimeout(() => {
+        if (this.widgetId) {
+          // execute() takes container (widget ID as string) and optional options
+          window.turnstile.execute(this.widgetId, {});
+        }
+      }, 100);
     });
   }
 
