@@ -28,10 +28,17 @@ export class TurnstileService {
 
   /**
    * Load the Turnstile script if not already loaded
+   * Note: Cloudflare script is async, we need to wait for window.turnstile
    */
   loadScript(): Promise<void> {
-    if (this.loaded()) {
+    if (window.turnstile) {
+      this.loaded.set(true);
       return Promise.resolve();
+    }
+
+    if (this.loaded()) {
+      // Script tag added but window.turnstile not ready yet, poll for it
+      return this.waitForTurnstile();
     }
 
     return new Promise((resolve, reject) => {
@@ -40,16 +47,51 @@ export class TurnstileService {
       script.async = true;
       script.defer = true;
 
-      script.onload = () => {
-        this.loaded.set(true);
-        resolve();
-      };
+      // Poll until window.turnstile is available
+      const pollInterval = setInterval(() => {
+        if (window.turnstile) {
+          clearInterval(pollInterval);
+          clearTimeout(timeout);
+          this.loaded.set(true);
+          resolve();
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      const timeout = setTimeout(() => {
+        clearInterval(pollInterval);
+        reject(new Error("Turnstile script load timeout"));
+      }, 10000);
 
       script.onerror = () => {
+        clearInterval(pollInterval);
+        clearTimeout(timeout);
         reject(new Error("Failed to load Turnstile script"));
       };
 
       document.head.appendChild(script);
+    });
+  }
+
+  /**
+   * Wait for window.turnstile to be available (already loaded but object not ready)
+   */
+  private waitForTurnstile(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const pollInterval = setInterval(() => {
+        if (window.turnstile) {
+          clearInterval(pollInterval);
+          clearTimeout(timeout);
+          resolve();
+        }
+      }, 100);
+
+      const timeout = setTimeout(() => {
+        clearInterval(pollInterval);
+        reject(new Error("Turnstile object not available"));
+      }, 5000);
+
+      // Timeout in 5 seconds
     });
   }
 
