@@ -24,6 +24,7 @@ interface TurnstileOptions {
   callback?: (token: string) => void;
   "error-callback"?: () => void;
   "expired-callback"?: () => void;
+  execution?: "render" | "execute";
 }
 
 @Injectable({ providedIn: "root" })
