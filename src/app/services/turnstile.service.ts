@@ -1,204 +1,124 @@
-import { Injectable, signal } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { environment } from "../../environments/environment";
 
 declare global {
   interface Window {
     turnstile: {
-      render: (
-        element: string | HTMLElement,
-        options: TurnstileOptions,
-      ) => string;
-      execute: (
+      render(
         container: string | HTMLElement,
-        options?: TurnstileOptions,
-      ) => Promise<string>;
-      reset: (widgetId?: string) => void;
-      remove: (widgetId: string) => void;
-      ready?: (callback: () => void) => void;
+        options: TurnstileOptions,
+      ): string;
+      execute(container: string | HTMLElement): Promise<string>;
+      reset(widgetId?: string): void;
+      remove(widgetId: string): void;
+      ready(callback: () => void): void;
+      getResponse(widgetId?: string): string;
     };
   }
 }
 
 interface TurnstileOptions {
-  sitekey?: string;
+  sitekey: string;
   callback?: (token: string) => void;
-  "error-callback"?: () => void;
+  "error-callback"?: (errorCode: string) => void;
   "expired-callback"?: () => void;
+  theme?: "light" | "dark" | "auto";
+  size?: "normal" | "compact" | "flexible";
+  appearance?: "always" | "execute" | "interaction-only";
   execution?: "render" | "execute";
+  action?: string;
+  cData?: string;
 }
 
 @Injectable({ providedIn: "root" })
 export class TurnstileService {
-  private widgetId: string | null = null;
+  private containerId = "cf-turnstile";
 
   /**
-   * Load the Turnstile script synchronously
+   * Load the Turnstile script in explicit mode
    */
   loadScript(): Promise<void> {
-    // Check if already loaded
     if (window.turnstile) {
       return Promise.resolve();
     }
 
-    // Check if script tag already exists (remove if async/defer)
-    const existingScript = document.querySelector('script[src*="cloudflare.com/turnstile"]');
-    if (existingScript) {
-      const isSyncLoaded = !(existingScript as HTMLScriptElement).async &&
-        !(existingScript as HTMLScriptElement).defer &&
-        !existingScript.getAttribute('async');
-
-      if (isSyncLoaded) {
-        // Already loaded sync, just wait for it to be ready
-        return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      // Use render=explicit so we control when widgets are created
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.onload = () => {
+        // Wait for turnstile to be fully ready
+        if (window.turnstile.ready) {
+          window.turnstile.ready(() => resolve());
+        } else {
+          // Fallback: poll until ready
           const check = setInterval(() => {
             if (window.turnstile) {
               clearInterval(check);
               resolve();
             }
-          }, 100);
-          setTimeout(() => { clearInterval(check); resolve(); }, 3000);
-        });
-      }
-      existingScript.remove();
-    }
-
-    return new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      // NO async/defer for invisible mode compatibility
-
-      script.onload = () => {
-        // Wait for turnstile to initialize
-        const check = setInterval(() => {
-          if (window.turnstile) {
+          }, 50);
+          setTimeout(() => {
             clearInterval(check);
-            clearTimeout(timeout);
-            resolve();
-          }
-        }, 100);
-
-        const timeout = setTimeout(() => {
-          clearInterval(check);
-          reject(new Error("Turnstile load timeout"));
-        }, 5000);
+            reject(new Error("Turnstile ready timeout"));
+          }, 5000);
+        }
       };
-
-      script.onerror = () => {
+      script.onerror = () =>
         reject(new Error("Failed to load Turnstile script"));
-      };
-
       document.head.appendChild(script);
     });
   }
 
   /**
-   * Execute Turnstile (for invisible mode)
-   * Returns the token directly
+   * Render the widget and get a token.
+   * For invisible mode: uses execution:"execute" so challenge doesn't start automatically,
+   * then triggers execute() to run it on demand.
    */
-  execute(containerId: string): Promise<string> {
+  renderAndExecute(): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!window.turnstile) {
         reject(new Error("Turnstile not loaded"));
         return;
       }
 
-      const container = document.getElementById(containerId);
+      const container = document.getElementById(this.containerId);
       if (!container) {
-        reject(new Error(`Container "${containerId}" not found`));
+        reject(new Error(`Container "${this.containerId}" not found`));
         return;
       }
 
-      // Render with execution:"execute" - widget is created but challenge doesn't run yet
-      this.widgetId = window.turnstile.render(container, {
+      // Clear container and render with execution:"execute"
+      container.innerHTML = "";
+
+      const widgetId = window.turnstile.render(container, {
         sitekey: environment.turnstileSiteKey,
         execution: "execute",
         callback: (token: string) => {
           resolve(token);
         },
-        "error-callback": () => {
-          reject(new Error("Turnstile verification failed"));
+        "error-callback": (errorCode: string) => {
+          reject(new Error(`Turnstile error: ${errorCode}`));
         },
         "expired-callback": () => {
           reject(new Error("Turnstile token expired"));
         },
       });
 
-      // Trigger the challenge after a short delay to let widget initialize
+      // Trigger the challenge after a brief delay to let the widget initialize
       setTimeout(() => {
-        if (this.widgetId) {
-          // execute() takes container (widget ID as string) and optional options
-          window.turnstile.execute(this.widgetId, {});
-        }
-      }, 100);
+        window.turnstile.execute(container);
+      }, 150);
     });
   }
 
   /**
-   * Trigger the challenge for a previously rendered widget
-   */
-  triggerExecute(widgetId: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!window.turnstile) {
-        reject(new Error("Turnstile not loaded"));
-        return;
-      }
-
-      window.turnstile.execute(widgetId, {
-        sitekey: environment.turnstileSiteKey,
-        callback: (token: string) => {
-          resolve(token);
-        },
-        "error-callback": () => {
-          reject(new Error("Turnstile verification failed"));
-        },
-        "expired-callback": () => {
-          reject(new Error("Turnstile token expired"));
-        },
-      });
-    });
-  }
-
-  /**
-   * Render Turnstile widget (for visible mode)
-   */
-  render(elementId: string | HTMLElement): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!window.turnstile) {
-        reject(new Error("Turnstile not loaded"));
-        return;
-      }
-
-      this.widgetId = window.turnstile.render(elementId, {
-        sitekey: environment.turnstileSiteKey,
-        callback: (token: string) => {
-          resolve(token);
-        },
-        "error-callback": () => {
-          reject(new Error("Turnstile verification failed"));
-        },
-        "expired-callback": () => {
-          reject(new Error("Turnstile token expired"));
-        },
-      });
-    });
-  }
-
-  /**
-   * Reset the Turnstile widget
+   * Reset the widget
    */
   reset(): void {
-    if (this.widgetId && window.turnstile) {
-      window.turnstile.reset(this.widgetId);
-    }
-  }
-
-  /**
-   * Remove the Turnstile widget
-   */
-  remove(): void {
-    if (this.widgetId && window.turnstile) {
-      window.turnstile.remove(this.widgetId);
-      this.widgetId = null;
+    if (window.turnstile) {
+      window.turnstile.reset();
     }
   }
 }
