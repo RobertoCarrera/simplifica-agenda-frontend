@@ -773,9 +773,11 @@ export class BookingWizardComponent implements OnInit {
       const container = document.getElementById('cf-turnstile');
       if (container) container.innerHTML = '';
       turnstile_token = await this.turnstileService.render('cf-turnstile');
-    } catch {
+    } catch (err) {
       this.submitting.set(false);
-      this.submitError.set('Error en la verificación de seguridad. Inténtalo de nuevo.');
+      const msg = err instanceof Error ? err.message : String(err);
+      this.submitError.set('Error en la verificación de seguridad: ' + msg);
+      console.error('Turnstile error:', err);
       return;
     }
 

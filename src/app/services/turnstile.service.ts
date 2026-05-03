@@ -10,6 +10,7 @@ declare global {
       ) => string;
       reset: (widgetId?: string) => void;
       remove: (widgetId: string) => void;
+      ready: (callback: () => void) => void;
     };
   }
 }
@@ -27,45 +28,32 @@ export class TurnstileService {
   private widgetId: string | null = null;
 
   /**
-   * Load the Turnstile script if not already loaded
-   * Note: Cloudflare script is async, we need to wait for window.turnstile
+   * Load the Turnstile script and wait for it to be ready
    */
   loadScript(): Promise<void> {
-    if (window.turnstile) {
-      this.loaded.set(true);
+    if (this.loaded() && window.turnstile) {
       return Promise.resolve();
     }
 
-    if (this.loaded()) {
-      // Script tag added but window.turnstile not ready yet, poll for it
-      return this.waitForTurnstile();
-    }
-
     return new Promise((resolve, reject) => {
+      // Check if already in DOM
+      if (document.querySelector('script[src*="cloudflare.com/turnstile"]')) {
+        // Script exists, wait for it to be ready
+        this.waitForReady().then(resolve).catch(reject);
+        return;
+      }
+
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
       script.async = true;
       script.defer = true;
 
-      // Poll until window.turnstile is available
-      const pollInterval = setInterval(() => {
-        if (window.turnstile) {
-          clearInterval(pollInterval);
-          clearTimeout(timeout);
-          this.loaded.set(true);
-          resolve();
-        }
-      }, 100);
-
-      // Timeout after 10 seconds
-      const timeout = setTimeout(() => {
-        clearInterval(pollInterval);
-        reject(new Error("Turnstile script load timeout"));
-      }, 10000);
+      script.onload = () => {
+        // Wait for turnstile.ready() to confirm it's usable
+        this.waitForReady().then(resolve).catch(reject);
+      };
 
       script.onerror = () => {
-        clearInterval(pollInterval);
-        clearTimeout(timeout);
         reject(new Error("Failed to load Turnstile script"));
       };
 
@@ -74,30 +62,49 @@ export class TurnstileService {
   }
 
   /**
-   * Wait for window.turnstile to be available (already loaded but object not ready)
+   * Wait for window.turnstile to be fully ready
    */
-  private waitForTurnstile(): Promise<void> {
+  private waitForReady(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const pollInterval = setInterval(() => {
-        if (window.turnstile) {
-          clearInterval(pollInterval);
-          clearTimeout(timeout);
+      if (!window.turnstile) {
+        reject(new Error("Turnstile not available"));
+        return;
+      }
+
+      // Use turnstile.ready() callback if available
+      if (typeof window.turnstile.ready === "function") {
+        window.turnstile.ready(() => {
+          this.loaded.set(true);
           resolve();
-        }
-      }, 100);
+        });
+      } else {
+        // Fallback: wait a bit for it to initialize
+        let attempts = 0;
+        const check = setInterval(() => {
+          attempts++;
+          if (window.turnstile && typeof window.turnstile.render === "function") {
+            clearInterval(check);
+            clearTimeout(timeout);
+            this.loaded.set(true);
+            resolve();
+          } else if (attempts > 50) {
+            // 5 second timeout
+            clearInterval(check);
+            clearTimeout(timeout);
+            reject(new Error("Turnstile ready timeout"));
+          }
+        }, 100);
 
-      const timeout = setTimeout(() => {
-        clearInterval(pollInterval);
-        reject(new Error("Turnstile object not available"));
-      }, 5000);
-
-      // Timeout in 5 seconds
+        const timeout = setTimeout(() => {
+          clearInterval(check);
+          reject(new Error("Turnstile ready timeout"));
+        }, 5000);
+      }
     });
   }
 
   /**
    * Render Turnstile widget and get token
-   * Returns a promise that resolves with the token
    */
   render(elementId: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -112,7 +119,8 @@ export class TurnstileService {
           resolve(token);
         },
         "error-callback": () => {
-          reject(new Error("Turnstile error"));
+          console.error("Turnstile error callback");
+          reject(new Error("Turnstile verification failed"));
         },
         "expired-callback": () => {
           reject(new Error("Turnstile token expired"));
