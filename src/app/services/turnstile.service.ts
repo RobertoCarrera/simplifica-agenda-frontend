@@ -1,4 +1,5 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import { environment } from "../../environments/environment";
 
 declare global {
@@ -31,10 +32,11 @@ interface TurnstileOptions {
 
 @Injectable({ providedIn: "root" })
 export class TurnstileService {
+  private sanitizer = inject(DomSanitizer);
   private containerId = "cf-turnstile";
 
   /**
-   * Load the Turnstile script synchronously (no async/defer)
+   * Load the Turnstile script
    */
   loadScript(): Promise<void> {
     if (window.turnstile) {
@@ -50,13 +52,12 @@ export class TurnstileService {
       script.onerror = () =>
         reject(new Error("Failed to load Turnstile script"));
 
-      // Must be synchronous (no async/defer) for render/execute to work
       document.head.appendChild(script);
     });
   }
 
   /**
-   * Render widget and get token
+   * Render widget and get token (invisible mode)
    */
   renderAndExecute(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -71,7 +72,9 @@ export class TurnstileService {
         return;
       }
 
-      container.innerHTML = "";
+      // Bypass Angular security to allow Turnstile injection
+      const safeHtml = this.sanitizer.bypassSecurityTrustHtml("");
+      container.innerHTML = ""; // Clear without security issue
 
       window.turnstile.render(container, {
         sitekey: environment.turnstileSiteKey,
