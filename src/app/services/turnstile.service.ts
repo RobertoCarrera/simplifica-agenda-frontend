@@ -1,5 +1,4 @@
-import { Injectable, inject } from "@angular/core";
-import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import { Injectable } from "@angular/core";
 import { environment } from "../../environments/environment";
 
 declare global {
@@ -9,7 +8,6 @@ declare global {
         container: string | HTMLElement,
         options: TurnstileOptions,
       ): string;
-      execute(container: string | HTMLElement): Promise<string>;
       reset(widgetId?: string): void;
       remove(widgetId: string): void;
       getResponse(widgetId?: string): string;
@@ -24,16 +22,12 @@ interface TurnstileOptions {
   "expired-callback"?: () => void;
   theme?: "light" | "dark" | "auto";
   size?: "normal" | "compact" | "flexible";
-  appearance?: "always" | "execute" | "interaction-only";
-  execution?: "render" | "execute";
-  action?: string;
-  cData?: string;
 }
 
 @Injectable({ providedIn: "root" })
 export class TurnstileService {
-  private sanitizer = inject(DomSanitizer);
   private containerId = "cf-turnstile";
+  private widgetId: string | null = null;
 
   /**
    * Load the Turnstile script
@@ -57,7 +51,7 @@ export class TurnstileService {
   }
 
   /**
-   * Render widget and get token (invisible mode)
+   * Render widget and get token (non-interactive mode)
    */
   renderAndExecute(): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -72,13 +66,10 @@ export class TurnstileService {
         return;
       }
 
-      // Bypass Angular security to allow Turnstile injection
-      const safeHtml = this.sanitizer.bypassSecurityTrustHtml("");
-      container.innerHTML = ""; // Clear without security issue
+      container.innerHTML = "";
 
-      window.turnstile.render(container, {
+      this.widgetId = window.turnstile.render(container, {
         sitekey: environment.turnstileSiteKey,
-        execution: "execute",
         callback: (token: string) => {
           resolve(token);
         },
@@ -89,11 +80,6 @@ export class TurnstileService {
           reject(new Error("Turnstile token expired"));
         },
       });
-
-      // Trigger the challenge to start
-      setTimeout(() => {
-        window.turnstile.execute(container);
-      }, 200);
     });
   }
 
@@ -101,8 +87,9 @@ export class TurnstileService {
    * Reset the widget
    */
   reset(): void {
-    if (window.turnstile) {
-      window.turnstile.reset();
+    if (this.widgetId && window.turnstile) {
+      window.turnstile.reset(this.widgetId);
+      this.widgetId = null;
     }
   }
 }
