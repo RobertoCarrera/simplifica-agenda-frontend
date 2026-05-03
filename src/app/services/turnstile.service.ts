@@ -10,7 +10,7 @@ declare global {
       ) => string;
       reset: (widgetId?: string) => void;
       remove: (widgetId: string) => void;
-      ready: (callback: () => void) => void;
+      ready?: (callback: () => void) => void;
     };
   }
 }
@@ -24,40 +24,38 @@ interface TurnstileOptions {
 
 @Injectable({ providedIn: "root" })
 export class TurnstileService {
-  private loaded = signal(false);
   private widgetId: string | null = null;
 
   /**
-   * Load the Turnstile script synchronously (required for turnstile.ready())
+   * Load the Turnstile script synchronously to ensure turnstile.ready() works
    */
   loadScript(): Promise<void> {
-    if (this.loaded() && window.turnstile) {
+    // Script already loaded and no async/defer means we're good
+    const existingScript = document.querySelector('script[src*="cloudflare.com/turnstile"]');
+    const isSyncLoaded = existingScript && 
+      !(existingScript as HTMLScriptElement).async && 
+      !(existingScript as HTMLScriptElement).defer &&
+      !existingScript.getAttribute('async');
+
+    if (isSyncLoaded && window.turnstile) {
       return Promise.resolve();
     }
 
     return new Promise((resolve, reject) => {
-      // Remove existing script if any (to reload fresh)
-      const existingScript = document.querySelector('script[src*="cloudflare.com/turnstile"]');
+      // Remove any existing script (cached or not)
       if (existingScript) {
         existingScript.remove();
       }
 
       const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?v=" + Date.now();
-      // NO async/defer - required for turnstile.ready() to work
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      // NO async/defer - critical for turnstile.ready()
 
       script.onload = () => {
-        // Wait for turnstile to be fully ready
-        if (window.turnstile?.ready) {
-          window.turnstile.ready(() => {
-            this.loaded.set(true);
-            resolve();
-          });
-        } else {
-          // Fallback: just mark as loaded if ready() not available
-          this.loaded.set(true);
+        // Small delay to let turnstile initialize
+        setTimeout(() => {
           resolve();
-        }
+        }, 100);
       };
 
       script.onerror = () => {
