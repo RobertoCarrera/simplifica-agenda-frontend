@@ -863,8 +863,15 @@ export class BookingWizardComponent implements OnInit {
   private buildDatetime(slot: TimeSlot): string {
     const [hour, minute] = slot.startTime.split(":").map(Number);
     const d = new Date(slot.datetime);
+    // Set hours in local time (NOT converting to UTC via toISOString)
     d.setHours(hour, minute, 0, 0);
-    return d.toISOString();
+    // Format as ISO string with timezone offset: "2026-05-11T09:30:00.000+02:00"
+    const offset = d.getTimezoneOffset();
+    const sign = offset <= 0 ? "+" : "-";
+    const absOffset = Math.abs(offset);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const tzStr = `${sign}${pad(Math.floor(absOffset / 60))}:${pad(absOffset % 60)}`;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.000${tzStr}`;
   }
 }
 
