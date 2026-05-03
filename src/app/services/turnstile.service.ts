@@ -94,16 +94,48 @@ export class TurnstileService {
    * Execute Turnstile (for invisible mode)
    * Returns the token directly
    */
-  execute(container: string | HTMLElement): Promise<string> {
+  execute(containerId: string): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!window.turnstile) {
         reject(new Error("Turnstile not loaded"));
         return;
       }
 
-      // For invisible mode, use execute() which returns a promise
-      // But we need to use the callback pattern for compatibility
+      const container = document.getElementById(containerId);
+      if (!container) {
+        reject(new Error(`Container "${containerId}" not found`));
+        return;
+      }
+
+      // For invisible mode, render with execution:"execute" first
+      // then call execute() to trigger the challenge
       this.widgetId = window.turnstile.render(container, {
+        sitekey: environment.turnstileSiteKey,
+        execution: "execute",
+        callback: (token: string) => {
+          resolve(token);
+        },
+        "error-callback": () => {
+          reject(new Error("Turnstile verification failed"));
+        },
+        "expired-callback": () => {
+          reject(new Error("Turnstile token expired"));
+        },
+      });
+    });
+  }
+
+  /**
+   * Trigger the challenge for a previously rendered widget
+   */
+  triggerExecute(widgetId: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!window.turnstile) {
+        reject(new Error("Turnstile not loaded"));
+        return;
+      }
+
+      window.turnstile.execute(widgetId, {
         sitekey: environment.turnstileSiteKey,
         callback: (token: string) => {
           resolve(token);
