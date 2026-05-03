@@ -28,7 +28,7 @@ export class TurnstileService {
   private widgetId: string | null = null;
 
   /**
-   * Load the Turnstile script and wait for it to be ready
+   * Load the Turnstile script synchronously (required for turnstile.ready())
    */
   loadScript(): Promise<void> {
     if (this.loaded() && window.turnstile) {
@@ -36,21 +36,28 @@ export class TurnstileService {
     }
 
     return new Promise((resolve, reject) => {
-      // Check if already in DOM
-      if (document.querySelector('script[src*="cloudflare.com/turnstile"]')) {
-        // Script exists, wait for it to be ready
-        this.waitForReady().then(resolve).catch(reject);
-        return;
+      // Remove existing script if any (to reload fresh)
+      const existingScript = document.querySelector('script[src*="cloudflare.com/turnstile"]');
+      if (existingScript) {
+        existingScript.remove();
       }
 
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      script.async = true;
-      script.defer = true;
+      // NO async/defer - required for turnstile.ready() to work
 
       script.onload = () => {
-        // Wait for turnstile.ready() to confirm it's usable
-        this.waitForReady().then(resolve).catch(reject);
+        // Wait for turnstile to be fully ready
+        if (window.turnstile?.ready) {
+          window.turnstile.ready(() => {
+            this.loaded.set(true);
+            resolve();
+          });
+        } else {
+          // Fallback: just mark as loaded if ready() not available
+          this.loaded.set(true);
+          resolve();
+        }
       };
 
       script.onerror = () => {
@@ -58,48 +65,6 @@ export class TurnstileService {
       };
 
       document.head.appendChild(script);
-    });
-  }
-
-  /**
-   * Wait for window.turnstile to be fully ready
-   */
-  private waitForReady(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!window.turnstile) {
-        reject(new Error("Turnstile not available"));
-        return;
-      }
-
-      // Use turnstile.ready() callback if available
-      if (typeof window.turnstile.ready === "function") {
-        window.turnstile.ready(() => {
-          this.loaded.set(true);
-          resolve();
-        });
-      } else {
-        // Fallback: wait a bit for it to initialize
-        let attempts = 0;
-        const check = setInterval(() => {
-          attempts++;
-          if (window.turnstile && typeof window.turnstile.render === "function") {
-            clearInterval(check);
-            clearTimeout(timeout);
-            this.loaded.set(true);
-            resolve();
-          } else if (attempts > 50) {
-            // 5 second timeout
-            clearInterval(check);
-            clearTimeout(timeout);
-            reject(new Error("Turnstile ready timeout"));
-          }
-        }, 100);
-
-        const timeout = setTimeout(() => {
-          clearInterval(check);
-          reject(new Error("Turnstile ready timeout"));
-        }, 5000);
-      }
     });
   }
 
@@ -119,7 +84,6 @@ export class TurnstileService {
           resolve(token);
         },
         "error-callback": () => {
-          console.error("Turnstile error callback");
           reject(new Error("Turnstile verification failed"));
         },
         "expired-callback": () => {
