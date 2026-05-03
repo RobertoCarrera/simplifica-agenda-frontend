@@ -43,7 +43,7 @@ export class TurnstileService {
       }
 
       const script = document.createElement("script");
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?v=" + Date.now();
       // NO async/defer - required for turnstile.ready() to work
 
       script.onload = () => {
