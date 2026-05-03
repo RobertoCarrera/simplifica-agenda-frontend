@@ -726,9 +726,11 @@ export class BookingWizardComponent implements OnInit {
   }
 
   selectMethodManual() {
-    const weekStart = this.availabilityService.getWeekStart(new Date());
-    this.calendarInitialDate.set(weekStart);
-    this.loadAvailability(weekStart);
+    // Show NEXT week (not current) so user sees future slots
+    const currentWeekStart = this.availabilityService.getWeekStart(new Date());
+    const nextWeekStart = this.availabilityService.getNextWeek(currentWeekStart);
+    this.calendarInitialDate.set(nextWeekStart);
+    this.loadAvailability(nextWeekStart);
     this.step.set(3);
   }
 
