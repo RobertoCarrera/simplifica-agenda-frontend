@@ -8,6 +8,10 @@ declare global {
         element: string | HTMLElement,
         options: TurnstileOptions,
       ) => string;
+      execute: (
+        container: string | HTMLElement,
+        options: TurnstileOptions,
+      ) => Promise<string>;
       reset: (widgetId?: string) => void;
       remove: (widgetId: string) => void;
       ready?: (callback: () => void) => void;
@@ -27,35 +31,55 @@ export class TurnstileService {
   private widgetId: string | null = null;
 
   /**
-   * Load the Turnstile script synchronously to ensure turnstile.ready() works
+   * Load the Turnstile script synchronously
    */
   loadScript(): Promise<void> {
-    // Script already loaded and no async/defer means we're good
-    const existingScript = document.querySelector('script[src*="cloudflare.com/turnstile"]');
-    const isSyncLoaded = existingScript && 
-      !(existingScript as HTMLScriptElement).async && 
-      !(existingScript as HTMLScriptElement).defer &&
-      !existingScript.getAttribute('async');
-
-    if (isSyncLoaded && window.turnstile) {
+    // Check if already loaded
+    if (window.turnstile) {
       return Promise.resolve();
     }
 
-    return new Promise((resolve, reject) => {
-      // Remove any existing script (cached or not)
-      if (existingScript) {
-        existingScript.remove();
-      }
+    // Check if script tag already exists (remove if async/defer)
+    const existingScript = document.querySelector('script[src*="cloudflare.com/turnstile"]');
+    if (existingScript) {
+      const isSyncLoaded = !(existingScript as HTMLScriptElement).async &&
+        !(existingScript as HTMLScriptElement).defer &&
+        !existingScript.getAttribute('async');
 
+      if (isSyncLoaded) {
+        // Already loaded sync, just wait for it to be ready
+        return new Promise((resolve) => {
+          const check = setInterval(() => {
+            if (window.turnstile) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
+          setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+        });
+      }
+      existingScript.remove();
+    }
+
+    return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-      // NO async/defer - critical for turnstile.ready()
+      // NO async/defer for invisible mode compatibility
 
       script.onload = () => {
-        // Small delay to let turnstile initialize
-        setTimeout(() => {
-          resolve();
+        // Wait for turnstile to initialize
+        const check = setInterval(() => {
+          if (window.turnstile) {
+            clearInterval(check);
+            clearTimeout(timeout);
+            resolve();
+          }
         }, 100);
+
+        const timeout = setTimeout(() => {
+          clearInterval(check);
+          reject(new Error("Turnstile load timeout"));
+        }, 5000);
       };
 
       script.onerror = () => {
@@ -67,7 +91,35 @@ export class TurnstileService {
   }
 
   /**
-   * Render Turnstile widget and get token
+   * Execute Turnstile (for invisible mode)
+   * Returns the token directly
+   */
+  execute(container: string | HTMLElement): Promise<string> {
+    return new Promise((resolve, reject) => {
+      if (!window.turnstile) {
+        reject(new Error("Turnstile not loaded"));
+        return;
+      }
+
+      // For invisible mode, use execute() which returns a promise
+      // But we need to use the callback pattern for compatibility
+      this.widgetId = window.turnstile.render(container, {
+        sitekey: environment.turnstileSiteKey,
+        callback: (token: string) => {
+          resolve(token);
+        },
+        "error-callback": () => {
+          reject(new Error("Turnstile verification failed"));
+        },
+        "expired-callback": () => {
+          reject(new Error("Turnstile token expired"));
+        },
+      });
+    });
+  }
+
+  /**
+   * Render Turnstile widget (for visible mode)
    */
   render(elementId: string | HTMLElement): Promise<string> {
     return new Promise((resolve, reject) => {

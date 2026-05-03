@@ -770,12 +770,8 @@ export class BookingWizardComponent implements OnInit {
     let turnstile_token: string;
     try {
       await this.turnstileService.loadScript();
-      const container = document.getElementById('cf-turnstile');
-      if (!container) {
-        throw new Error("Contenedor Turnstile no encontrado");
-      }
-      container.innerHTML = '';
-      turnstile_token = await this.turnstileService.render(container);
+      // For invisible mode, use execute() which doesn't need a container
+      turnstile_token = await this.turnstileService.execute('cf-turnstile');
     } catch (err) {
       this.submitting.set(false);
       const msg = err instanceof Error ? err.message : String(err);
