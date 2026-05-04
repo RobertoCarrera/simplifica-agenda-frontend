@@ -54,13 +54,15 @@ export interface AvailabilityResponse {
 }
 
 export interface CreateBookingPayload {
-  slug: string;
-  service_id: string;
+  action: 'create-booking';
+  company_slug: string;
+  booking_type_id: string;
   professional_id?: string;
   client_name: string;
   client_email: string;
-  client_phone: string;
-  datetime: string;
+  client_phone?: string;
+  requested_date: string; // YYYY-MM-DD
+  requested_time: string; // HH:MM
   turnstile_token: string;
 }
 

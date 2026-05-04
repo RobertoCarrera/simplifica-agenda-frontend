@@ -780,15 +780,19 @@ export class BookingWizardComponent implements OnInit {
     }
 
     const datetime = this.buildDatetime(slot);
+    const [datePart, timePart] = datetime.split('T');
+    const finalTime = timePart.substring(0, 5);
     this.bookingService
       .createBooking({
-        slug: this.slug(),
-        service_id: svc.id,
+        action: 'create-booking',
+        company_slug: this.slug(),
+        booking_type_id: svc.id,
         professional_id: this.formProfessionalId || undefined,
         client_name: this.formName,
         client_email: this.formEmail,
-        client_phone: this.formPhone,
-        datetime,
+        client_phone: this.formPhone || undefined,
+        requested_date: datePart,
+        requested_time: finalTime,
         turnstile_token,
       })
       .subscribe({
