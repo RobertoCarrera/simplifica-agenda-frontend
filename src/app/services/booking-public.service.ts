@@ -14,6 +14,7 @@ export interface Company {
   logo_url?: string;
   primary_color?: string;
   secondary_color?: string;
+  enabled_filters?: ('services' | 'professionals' | 'duration')[];
 }
 
 export interface Service {

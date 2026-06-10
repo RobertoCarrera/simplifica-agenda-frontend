@@ -75,39 +75,45 @@ interface DurationGroup {
 
           <!-- Journey tabs -->
           <div class="journey-tabs">
-          <button
-            class="journey-tab"
-            [class.active]="activeTab() === 'services'"
-            (click)="setTab('services')"
-          >
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            Por Servicio
-          </button>
-          <button
-            class="journey-tab"
-            [class.active]="activeTab() === 'professionals'"
-            (click)="setTab('professionals')"
-          >
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            Por Profesional
-          </button>
-          <button
-            class="journey-tab"
-            [class.active]="activeTab() === 'duration'"
-            (click)="setTab('duration')"
-          >
-            <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Por Duración
-          </button>
+          @if (isTabEnabled('services')) {
+            <button
+              class="journey-tab"
+              [class.active]="activeTab() === 'services'"
+              (click)="setTab('services')"
+            >
+              <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              Por Servicio
+            </button>
+          }
+          @if (isTabEnabled('professionals')) {
+            <button
+              class="journey-tab"
+              [class.active]="activeTab() === 'professionals'"
+              (click)="setTab('professionals')"
+            >
+              <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Por Profesional
+            </button>
+          }
+          @if (isTabEnabled('duration')) {
+            <button
+              class="journey-tab"
+              [class.active]="activeTab() === 'duration'"
+              (click)="setTab('duration')"
+            >
+              <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Por Duración
+            </button>
+          }
           </div>
         </div>
 
@@ -666,6 +672,16 @@ export class CatalogComponent implements OnInit {
   error = signal<string | null>(null);
 
   activeTab = signal<Journey>("services");
+  // Tabs enabled by the CRM (Reservas > Configuración > General > "Filtros Visibles en el Portal").
+  // Populated from BFF response `company.enabled_filters`. Defaults to all three
+  // tabs visible until the BFF tells us otherwise, so a missing field is safe.
+  enabledTabs = signal<Set<Journey>>(
+    new Set<Journey>(["services", "professionals", "duration"]),
+  );
+
+  isTabEnabled(tab: Journey): boolean {
+    return this.enabledTabs().has(tab);
+  }
   sortOrder = signal<SortOrder>("default");
   sortOrderValue: SortOrder = "default";
   selectedProfessional = signal<Professional | null>(null);
@@ -778,6 +794,21 @@ export class CatalogComponent implements OnInit {
         this.company.set(res.company);
         applyBrandingColors(res.company?.primary_color, res.company?.secondary_color);
         this.services.set(res.services);
+
+        // Sync tab visibility from CRM (Reservas > Configuración > General).
+        // If the BFF returns enabled_filters, use it. Otherwise keep the
+        // default (all three visible) — matches the BFF fallback.
+        const enabled = res.company?.enabled_filters;
+        if (Array.isArray(enabled)) {
+          this.enabledTabs.set(new Set<Journey>(enabled));
+          // If the current active tab is no longer enabled, fall back to the
+          // first enabled tab so the user always lands on a visible view.
+          if (!this.isTabEnabled(this.activeTab())) {
+            const fallback = (["services", "professionals", "duration"] as Journey[])
+              .find((t) => this.isTabEnabled(t));
+            if (fallback) this.activeTab.set(fallback);
+          }
+        }
 
         // Build professionals enriched with their services.
         // The top-level professionals list may be empty (older deployed function),
