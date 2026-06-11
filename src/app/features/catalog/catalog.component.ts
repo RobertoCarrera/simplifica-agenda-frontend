@@ -407,8 +407,8 @@ interface JourneyTabDef {
       /* ── Services grid ── */
       .services-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
       }
 
       /* ── Service card ── */
@@ -416,10 +416,10 @@ interface JourneyTabDef {
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: 0.75rem;
-        padding: 1.25rem;
+        padding: 1.5rem;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 1.25rem;
         transition: all 150ms ease;
       }
       .service-card:hover {
@@ -427,12 +427,12 @@ interface JourneyTabDef {
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       }
-      .service-card-top { display: flex; align-items: flex-start; gap: 0.75rem; }
-      .service-dot { width: 0.75rem; height: 0.75rem; border-radius: 50%; flex-shrink: 0; margin-top: 0.25rem; }
+      .service-card-top { display: flex; align-items: flex-start; gap: 1rem; }
+      .service-dot { width: 1rem; height: 1rem; border-radius: 50%; flex-shrink: 0; margin-top: 0.3rem; }
       .service-card-info { flex: 1; min-width: 0; }
-      .service-name { font-size: 1rem; font-weight: 600; margin: 0 0 0.25rem; line-height: 1.2; color: var(--color-text); }
-      .service-desc { font-size: 0.75rem; margin: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--color-text-secondary); }
-      .service-price { font-size: 1.25rem; font-weight: 700; flex-shrink: 0; white-space: nowrap; color: var(--color-text-secondary); }
+      .service-name { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.4rem; line-height: 1.2; color: var(--color-text); }
+      .service-desc { font-size: 0.875rem; margin: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--color-text-secondary); }
+      .service-price { font-size: 1.5rem; font-weight: 700; flex-shrink: 0; white-space: nowrap; color: var(--color-text-secondary); }
       .service-card-bottom {
         display: flex;
         align-items: center;
@@ -480,15 +480,15 @@ interface JourneyTabDef {
       /* ── Professionals grid ── */
       .professionals-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 1rem;
         margin-top: 1rem;
       }
       .prof-card {
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: 0.75rem;
-        padding: 1.25rem;
+        padding: 0.75rem;
         cursor: pointer;
         text-align: center;
         transition: all 150ms ease;
@@ -502,7 +502,7 @@ interface JourneyTabDef {
         aspect-ratio: 3/4;
         border-radius: 0.5rem;
         overflow: hidden;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -515,13 +515,13 @@ interface JourneyTabDef {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 3.5rem;
+        font-size: 1.75rem;
         font-weight: 700;
       }
       .prof-card-info { text-align: center; }
       .prof-card-name {
         font-weight: 700;
-        font-size: 1.125rem;
+        font-size: 0.875rem;
         margin: 0 0 0.25rem;
         color: var(--color-text);
       }
@@ -659,26 +659,22 @@ interface JourneyTabDef {
         }
 
         .professionals-grid {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, 1fr);
           gap: 0.75rem;
         }
         .prof-card {
           width: 100%;
-          display: flex;
-          align-items: center;
-          text-align: left;
-          padding: 0.75rem;
-          gap: 0.75rem;
+          padding: 0.5rem;
+          text-align: center;
         }
         .prof-card-avatar-wrap {
-          width: 3rem;
-          height: 3rem;
-          aspect-ratio: auto;
+          aspect-ratio: 3/4;
           flex-shrink: 0;
-          margin-bottom: 0;
+          margin-bottom: 0.4rem;
         }
-        .prof-card-info { text-align: left; flex: 1; min-width: 0; }
-        .prof-card-tags { justify-content: flex-start; }
+        .prof-card-avatar-initials { font-size: 1.25rem; }
+        .prof-card-info { text-align: center; }
+        .prof-card-tags { justify-content: center; }
 
         .prof-detail-header {
           padding: 1rem;
