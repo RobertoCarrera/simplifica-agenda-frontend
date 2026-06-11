@@ -928,7 +928,12 @@ export class CatalogComponent implements OnInit {
           }
           this.deepLinkProfessionalId = null;
         }
-
+        // Fetch filter visibility config for this company
+        // (res.company may lack `id` if the upstream BFF contract changes —
+        //  skip silently and fall back to "show all tabs".)
+        if (res.company?.id) {
+          this.fetchFilterVisibility(res.company.id);
+        }
         this.loading.set(false);
       },
       error: (err) => {
