@@ -480,8 +480,8 @@ interface JourneyTabDef {
       /* ── Professionals grid ── */
       .professionals-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1.25rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
         margin-top: 1rem;
       }
       .prof-card {
@@ -499,7 +499,7 @@ interface JourneyTabDef {
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       }
       .prof-card-avatar-wrap {
-        aspect-ratio: 4/5;
+        aspect-ratio: 3/4;
         border-radius: 0.5rem;
         overflow: hidden;
         margin-bottom: 0.75rem;
@@ -515,13 +515,13 @@ interface JourneyTabDef {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.5rem;
+        font-size: 3.5rem;
         font-weight: 700;
       }
       .prof-card-info { text-align: center; }
       .prof-card-name {
         font-weight: 700;
-        font-size: 1rem;
+        font-size: 1.125rem;
         margin: 0 0 0.25rem;
         color: var(--color-text);
       }
