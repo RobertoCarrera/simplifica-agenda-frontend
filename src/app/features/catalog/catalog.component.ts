@@ -8,7 +8,6 @@ import {
   Company,
   Service,
   Professional,
-  FilterVisibilityItem,
 } from "../../services/booking-public.service";
 import { applyBrandingColors } from "../../shared/branding.utils";
 import { StripHtmlPipe } from "../../shared/pipes/strip-html.pipe";
@@ -481,15 +480,15 @@ interface JourneyTabDef {
       /* ── Professionals grid ── */
       .professionals-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.25rem;
         margin-top: 1rem;
       }
       .prof-card {
         background: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: 0.75rem;
-        padding: 1rem;
+        padding: 1.25rem;
         cursor: pointer;
         text-align: center;
         transition: all 150ms ease;
@@ -500,7 +499,7 @@ interface JourneyTabDef {
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       }
       .prof-card-avatar-wrap {
-        aspect-ratio: 1;
+        aspect-ratio: 4/5;
         border-radius: 0.5rem;
         overflow: hidden;
         margin-bottom: 0.75rem;
@@ -516,13 +515,13 @@ interface JourneyTabDef {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 2.5rem;
         font-weight: 700;
       }
       .prof-card-info { text-align: center; }
       .prof-card-name {
         font-weight: 700;
-        font-size: 0.875rem;
+        font-size: 1rem;
         margin: 0 0 0.25rem;
         color: var(--color-text);
       }
@@ -739,10 +738,7 @@ export class CatalogComponent implements OnInit {
   private deepLinkProfessionalId: string | null = null;
   private deepLinkProfessionalSlug: string | null = null;
 
-  /** Visibility filter IDs from Supabase. Empty Set = no config loaded yet or "show all". */
-  visibleFilterIds = signal<Set<string>>(new Set());
-
-  /** All available journey tab definitions. */
+  /** All available journey tab definitions (label + icon). */
   private readonly allJourneyTabs: JourneyTabDef[] = [
     {
       id: "services",
@@ -763,12 +759,14 @@ export class CatalogComponent implements OnInit {
     },
   ];
 
-  /** Journey tabs filtered by visibility config. Empty config → show all. */
+  /**
+   * Journey tabs filtered by `enabledTabs` (driven by the BFF
+   * `company.enabled_filters` field). When the BFF hasn't sent the
+   * field yet, `enabledTabs` defaults to all three, so we always
+   * have a tab list to render.
+   */
   visibleTabs = computed(() => {
-    const visIds = this.visibleFilterIds();
-    // Empty Set means: not yet loaded OR error OR no visibility rows → show all
-    if (visIds.size === 0) return this.allJourneyTabs;
-    return this.allJourneyTabs.filter((t) => visIds.has(t.id));
+    return this.allJourneyTabs.filter((t) => this.isTabEnabled(t.id));
   });
 
   readonly durationGroups: DurationGroup[] = [
@@ -823,8 +821,7 @@ export class CatalogComponent implements OnInit {
 
   setTab(tab: Journey) {
     // Guard: don't allow switching to a hidden tab
-    const visible = this.visibleTabs();
-    if (!visible.some((t) => t.id === tab)) return;
+    if (!this.isTabEnabled(tab)) return;
     this.activeTab.set(tab);
     this.selectedProfessional.set(null);
   }
@@ -930,45 +927,11 @@ export class CatalogComponent implements OnInit {
           this.deepLinkProfessionalId = null;
         }
 
-        // Fetch filter visibility config for this company
-        this.fetchFilterVisibility(res.company.id);
-
         this.loading.set(false);
       },
       error: (err) => {
         this.error.set(err.message || "Error al cargar los servicios");
         this.loading.set(false);
-      },
-    });
-  }
-
-  /**
-   * Fetch company filter visibility from Supabase edge function.
-   * On success: populates visibleFilterIds with only the IDs marked visible.
-   * On error / no config: keeps visibleFilterIds empty → show all.
-   * If the currently active tab becomes hidden, auto-switch to first visible.
-   */
-  private fetchFilterVisibility(companyId: string): void {
-    this.bookingService.getFilterVisibility(companyId).subscribe({
-      next: (filters) => {
-        const visibleIds = new Set<string>(
-          filters.filter((f) => f.visible).map((f) => f.id),
-        );
-        this.visibleFilterIds.set(visibleIds);
-
-        // If active tab is now hidden, switch to first visible
-        if (visibleIds.size > 0 && !visibleIds.has(this.activeTab())) {
-          const firstVisible = this.allJourneyTabs.find((t) =>
-            visibleIds.has(t.id),
-          );
-          if (firstVisible) {
-            this.activeTab.set(firstVisible.id);
-          }
-        }
-      },
-      error: () => {
-        // Error → keep empty Set → show all tabs (default behavior)
-        // visibleFilterIds already defaults to empty Set, no action needed
       },
     });
   }
