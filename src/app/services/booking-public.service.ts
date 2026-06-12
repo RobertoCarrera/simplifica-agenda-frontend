@@ -50,20 +50,47 @@ export interface BusyPeriod {
   end: string;
 }
 
+export interface ScheduleEntry {
+  professional_id: string;
+  day_of_week: number; // 1=Mon..7=Sun (ISO)
+  start_time: string;  // "HH:MM:SS"
+  end_time: string;
+  break_start: string | null;
+  break_end: string | null;
+}
+
+export interface BlockedDate {
+  professional_id?: string;
+  service_id?: string;
+  start_date: string;  // YYYY-MM-DD
+  end_date: string;    // YYYY-MM-DD
+  all_day: boolean;
+  start_time: string | null;
+  end_time: string | null;
+}
+
+export interface ResourceBusyPeriod {
+  resource_id: string;
+  start: string;
+  end: string;
+}
+
 export interface AvailabilityResponse {
   busy_periods: BusyPeriod[];
+  schedule: ScheduleEntry[];
+  professional_blocked_dates: BlockedDate[];
+  service_blocked_dates: BlockedDate[];
+  resource_busy_periods: ResourceBusyPeriod[];
 }
 
 export interface CreateBookingPayload {
-  action: 'create-booking';
-  company_slug: string;
-  booking_type_id: string;
+  slug: string;
+  service_id: string;
   professional_id?: string;
   client_name: string;
   client_email: string;
   client_phone?: string;
-  requested_date: string; // YYYY-MM-DD
-  requested_time: string; // HH:MM
+  datetime: string; // ISO 8601: "YYYY-MM-DDTHH:MM:SSZ" or with offset
   turnstile_token: string;
 }
 
@@ -126,6 +153,7 @@ export class BookingPublicService {
     slug: string,
     weekStart: string,
     professionalId?: string,
+    serviceId?: string,
   ): Observable<AvailabilityResponse> {
     let params = new HttpParams()
       .set("slug", slug)
@@ -133,6 +161,9 @@ export class BookingPublicService {
 
     if (professionalId) {
       params = params.set("professional_id", professionalId);
+    }
+    if (serviceId) {
+      params = params.set("service_id", serviceId);
     }
 
     return this.http

@@ -1,5 +1,5 @@
-import { Injectable, signal, computed } from "@angular/core";
-import { BusyPeriod } from "./booking-public.service";
+import { Injectable } from "@angular/core";
+import { BusyPeriod, ScheduleEntry, BlockedDate } from "./booking-public.service";
 import { TimeSlot } from "../features/calendar/time-slot.component";
 
 export interface WeekDay {
@@ -17,9 +17,6 @@ export interface CalendarDay {
 
 @Injectable({ providedIn: "root" })
 export class AvailabilityService {
-  private readonly WORKING_HOURS = { start: 9, end: 19 };
-  private readonly SLOT_DURATION_MINUTES = 30;
-
   /**
    * Generate week days for a given week start date
    */
@@ -51,17 +48,90 @@ export class AvailabilityService {
   }
 
   /**
+   * Derive the working window (start, end in minutes from midnight) for a day
+   * from the BFF `schedule` array. Uses the UNION of windows when no professional
+   * is selected (so any professional working that day is shown). When a
+   * professional is selected, uses only that professional's window. Returns
+   * null when no professional is scheduled that day (the day is fully closed).
+   */
+  private getWorkingWindow(
+    day: WeekDay,
+    schedule: ScheduleEntry[],
+    professionalId?: string,
+  ): { start: number; end: number; breakStart: number | null; breakEnd: number | null } | null {
+    // JS getDay(): 0=Sun..6=Sat. ISO day_of_week: 1=Mon..7=Sun.
+    const isoDow = day.date.getDay() === 0 ? 7 : day.date.getDay();
+
+    const relevant = schedule.filter((s) => {
+      if (s.day_of_week !== isoDow) return false;
+      if (professionalId) return s.professional_id === professionalId;
+      return true;
+    });
+
+    if (relevant.length === 0) return null;
+
+    const toMins = (hms: string): number => {
+      const [h, m] = hms.split(":").map((n) => parseInt(n, 10));
+      return h * 60 + m;
+    };
+
+    let minStart = Number.POSITIVE_INFINITY;
+    let maxEnd = 0;
+    let breakStart: number | null = null;
+    let breakEnd: number | null = null;
+    for (const s of relevant) {
+      const sStart = toMins(s.start_time);
+      const sEnd = toMins(s.end_time);
+      if (sStart < minStart) minStart = sStart;
+      if (sEnd > maxEnd) maxEnd = sEnd;
+      // Pick the first non-null break window; if multiple professionals have
+      // breaks, we just take the earliest (good enough for visualization)
+      if (s.break_start && s.break_end) {
+        const bStart = toMins(s.break_start);
+        const bEnd = toMins(s.break_end);
+        if (breakStart === null || bStart < breakStart) {
+          breakStart = bStart;
+          breakEnd = bEnd;
+        }
+      }
+    }
+    if (maxEnd <= minStart) return null;
+    return { start: minStart, end: maxEnd, breakStart, breakEnd };
+  }
+
+  /**
+   * Check if a date string (YYYY-MM-DD) is within a blocked-date range.
+   */
+  private isDateBlocked(
+    dateStr: string,
+    blocks: BlockedDate[],
+  ): BlockedDate | null {
+    for (const b of blocks) {
+      if (dateStr >= b.start_date && dateStr <= b.end_date) {
+        return b;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Generate time slots for a given day.
    *
    * Step between consecutive slot start times equals the service duration,
    * so a 60-min service shows 9:00 → 10:00, 10:00 → 11:00, … and a 30-min
-   * service shows 9:00 → 9:30, 9:30 → 10:00, …
+   * service shows 9:30 → 10:00, 10:00 → 10:30, …
+   *
+   * `schedule` and `blockedDates` come from the BFF /availability response
+   * and replace the previous hardcoded WORKING_HOURS window.
    */
   generateTimeSlots(
     day: WeekDay,
     busyPeriods: BusyPeriod[],
     serviceDuration: number = 30,
     selectedSlotId?: string,
+    schedule: ScheduleEntry[] = [],
+    blockedDates: BlockedDate[] = [],
+    professionalId?: string,
   ): TimeSlot[] {
     const slots: TimeSlot[] = [];
     const now = new Date();
@@ -69,10 +139,25 @@ export class AvailabilityService {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
 
+    // Derive the working window from the schedule (replaces WORKING_HOURS).
+    const window = this.getWorkingWindow(day, schedule, professionalId);
+    if (!window) {
+      return slots; // No professional works that day → no slots.
+    }
+    const startOfDay = window.start;
+    const endOfDay = window.end;
+    const breakStart = window.breakStart;
+    const breakEnd = window.breakEnd;
+
+    // Check if the day is fully blocked (all_day=true).
+    const dayStr = day.date.toISOString().split("T")[0];
+    const dayBlock = this.isDateBlocked(dayStr, blockedDates);
+    if (dayBlock && dayBlock.all_day) {
+      return slots; // Day is fully blocked.
+    }
+
     // Step between starts = service duration. Each slot ends at start + serviceDuration.
     const step = serviceDuration > 0 ? serviceDuration : 30;
-    const startOfDay = this.WORKING_HOURS.start * 60; // minutes from midnight
-    const endOfDay = this.WORKING_HOURS.end * 60;
 
     for (let mins = startOfDay; mins + step <= endOfDay; mins += step) {
       const hour = Math.floor(mins / 60);
@@ -92,8 +177,27 @@ export class AvailabilityService {
         isPast = slotTime <= currentTime;
       }
 
+      // Block if slot falls within the professional's break window
+      let isInBreak = false;
+      if (breakStart !== null && breakEnd !== null) {
+        const slotEndMins = mins + step;
+        // A slot that overlaps the break is invalid
+        if (mins < breakEnd && slotEndMins > breakStart) {
+          isInBreak = true;
+        }
+      }
+
+      // Block if slot is within a time-of-day block (all_day=false)
+      let isInTimeBlock = false;
+      if (dayBlock && !dayBlock.all_day && dayBlock.start_time && dayBlock.end_time) {
+        const t = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}:00`;
+        if (t >= dayBlock.start_time && t < dayBlock.end_time) {
+          isInTimeBlock = true;
+        }
+      }
+
       // Check if slot is available (not in busy periods)
-      const isAvailable = !this.isSlotOccupied(
+      const isAvailable = !isInBreak && !isInTimeBlock && !this.isSlotOccupied(
         slotDate,
         busyPeriods,
         step,
@@ -147,8 +251,19 @@ export class AvailabilityService {
     day: WeekDay,
     busyPeriods: BusyPeriod[],
     serviceDuration: number = 30,
+    schedule: ScheduleEntry[] = [],
+    blockedDates: BlockedDate[] = [],
+    professionalId?: string,
   ): TimeSlot | null {
-    const slots = this.generateTimeSlots(day, busyPeriods, serviceDuration);
+    const slots = this.generateTimeSlots(
+      day,
+      busyPeriods,
+      serviceDuration,
+      undefined,
+      schedule,
+      blockedDates,
+      professionalId,
+    );
     return slots.find((s) => s.isAvailable && !s.isPast) || null;
   }
 

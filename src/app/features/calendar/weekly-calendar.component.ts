@@ -18,7 +18,11 @@ import {
   CalendarDay,
 } from "../../services/availability.service";
 import { TimeSlot } from "./time-slot.component";
-import { BusyPeriod } from "../../services/booking-public.service";
+import {
+  BusyPeriod,
+  ScheduleEntry,
+  BlockedDate,
+} from "../../services/booking-public.service";
 
 @Component({
   selector: "app-weekly-calendar",
@@ -433,6 +437,9 @@ export class WeeklyCalendarComponent implements OnInit, OnChanges {
   @Input() serviceDuration: number = 30;
   @Input() initialDate?: Date;
   @Input() loading = false;
+  @Input() schedule: ScheduleEntry[] = [];
+  @Input() blockedDates: BlockedDate[] = [];
+  @Input() professionalId?: string;
   @Output() slotSelected = new EventEmitter<TimeSlot>();
   @Output() weekChanged = new EventEmitter<Date>();
 
@@ -496,7 +503,12 @@ export class WeeklyCalendarComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['busyPeriods'] && !changes['busyPeriods'].firstChange) {
+    if (
+      (changes['busyPeriods'] && !changes['busyPeriods'].firstChange) ||
+      (changes['schedule'] && !changes['schedule'].firstChange) ||
+      (changes['blockedDates'] && !changes['blockedDates'].firstChange) ||
+      (changes['professionalId'] && !changes['professionalId'].firstChange)
+    ) {
       this.generateCalendar();
     }
   }
@@ -512,6 +524,9 @@ export class WeeklyCalendarComponent implements OnInit, OnChanges {
         this.busyPeriods,
         this.serviceDuration,
         this.selectedSlot()?.id,
+        this.schedule,
+        this.blockedDates,
+        this.professionalId,
       ),
     }));
 

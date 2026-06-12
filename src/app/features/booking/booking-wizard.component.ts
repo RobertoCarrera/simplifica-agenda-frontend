@@ -8,6 +8,8 @@ import {
   Service,
   Professional,
   BusyPeriod,
+  ScheduleEntry,
+  BlockedDate,
 } from "../../services/booking-public.service";
 import { AvailabilityService } from "../../services/availability.service";
 import { TurnstileService } from "../../services/turnstile.service";
@@ -301,6 +303,9 @@ import { applyBrandingColors } from "../../shared/branding.utils";
               -->
               <app-weekly-calendar
                 [busyPeriods]="busyPeriods()"
+                [schedule]="schedule()"
+                [blockedDates]="blockedDates()"
+                [professionalId]="formProfessionalId || undefined"
                 [serviceDuration]="service()?.duration_minutes ?? 30"
                 [initialDate]="calendarInitialDate()"
                 [loading]="loadingAvailability()"
@@ -593,6 +598,8 @@ export class BookingWizardComponent implements OnInit {
 
   // Availability / calendar
   busyPeriods = signal<BusyPeriod[]>([]);
+  schedule = signal<ScheduleEntry[]>([]);
+  blockedDates = signal<BlockedDate[]>([]);
   calendarInitialDate = signal<Date | undefined>(undefined);
   loadingAvailability = signal(false);
   selectedSlot = signal<TimeSlot | null>(null);
@@ -695,7 +702,8 @@ export class BookingWizardComponent implements OnInit {
     }
     const weekStr = this.formatDateParam(weekStart);
     const profId = this.formProfessionalId || undefined;
-    this.bookingService.getAvailability(this.slug(), weekStr, profId).subscribe({
+    const svcId = this.service()?.id;
+    this.bookingService.getAvailability(this.slug(), weekStr, profId, svcId).subscribe({
       next: (res) => {
         const days = this.availabilityService.generateWeekDays(weekStart);
         for (const day of days) {
@@ -703,9 +711,14 @@ export class BookingWizardComponent implements OnInit {
             day,
             res.busy_periods,
             this.service()?.duration_minutes ?? 30,
+            res.schedule,
+            this.combineBlockedDates(res),
+            profId,
           );
           if (slot) {
             this.busyPeriods.set(res.busy_periods);
+            this.schedule.set(res.schedule);
+            this.blockedDates.set(this.combineBlockedDates(res));
             this.calendarInitialDate.set(slot.datetime);
             this.selectedSlot.set(slot);
             this.autoSearching.set(false);
@@ -740,15 +753,32 @@ export class BookingWizardComponent implements OnInit {
   private loadAvailability(weekStart: Date) {
     this.loadingAvailability.set(true);
     const profId = this.formProfessionalId || undefined;
+    const svcId = this.service()?.id;
     this.bookingService
-      .getAvailability(this.slug(), this.formatDateParam(weekStart), profId)
+      .getAvailability(this.slug(), this.formatDateParam(weekStart), profId, svcId)
       .subscribe({
         next: (res) => {
           this.busyPeriods.set(res.busy_periods);
+          this.schedule.set(res.schedule);
+          this.blockedDates.set(this.combineBlockedDates(res));
           this.loadingAvailability.set(false);
         },
         error: () => this.loadingAvailability.set(false),
       });
+  }
+
+  /**
+   * Merge the two blocked-date arrays from the BFF response into a single
+   * array the calendar can use to disable slots. Both shapes are the same
+   * (BlockedDate), distinguished by the presence of `professional_id` vs
+   * `service_id`. The calendar's `isDateBlocked` check matches on date
+   * range, so merging is safe.
+   */
+  private combineBlockedDates(res: { professional_blocked_dates: BlockedDate[]; service_blocked_dates: BlockedDate[]; }): BlockedDate[] {
+    return [
+      ...(res.professional_blocked_dates ?? []),
+      ...(res.service_blocked_dates ?? []),
+    ];
   }
 
   onWeekChanged(weekStart: Date) {
@@ -782,19 +812,15 @@ export class BookingWizardComponent implements OnInit {
     }
 
     const datetime = this.buildDatetime(slot);
-    const [datePart, timePart] = datetime.split('T');
-    const finalTime = timePart.substring(0, 5);
     this.bookingService
       .createBooking({
-        action: 'create-booking',
-        company_slug: this.slug(),
-        booking_type_id: svc.id,
+        slug: this.slug(),
+        service_id: svc.id,
         professional_id: this.formProfessionalId || undefined,
         client_name: this.formName,
         client_email: this.formEmail,
         client_phone: this.formPhone || undefined,
-        requested_date: datePart,
-        requested_time: finalTime,
+        datetime,
         turnstile_token,
       })
       .subscribe({
