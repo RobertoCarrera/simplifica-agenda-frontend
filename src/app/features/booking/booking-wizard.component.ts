@@ -347,7 +347,7 @@ import { applyBrandingColors } from "../../shared/branding.utils";
       :host { display: block; }
 
       .wizard-page {
-        @apply max-w-[680px] mx-auto px-6 pt-6 pb-16;
+        @apply max-w-[1024px] mx-auto px-6 pt-6 pb-16;
       }
 
       /* ── Back link ── */

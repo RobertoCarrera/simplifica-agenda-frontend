@@ -65,26 +65,28 @@ import {
       <!-- Day selector tabs -->
       <div class="day-tabs">
         @for (day of weekDays(); track day.date; let i = $index) {
-          <button
-            class="day-tab"
-            type="button"
-            [class.day-tab--active]="selectedDayIndex() === i"
-            [class.day-tab--today]="day.isToday"
-            [class.day-tab--no-slots]="getAvailableSlotsForDay(i).length === 0"
-            (click)="selectDay(i)"
-          >
-            <span class="day-tab-name">{{ day.dayName }}</span>
-            <span class="day-tab-number" [class.day-tab-number--today]="day.isToday">
-              {{ day.dayNumber }}
-            </span>
-            <span class="day-tab-count" [class.day-tab-count--empty]="getAvailableSlotsForDay(i).length === 0">
-              @if (getAvailableSlotsForDay(i).length === 0) {
-                Sin hueco
-              } @else {
-                {{ getAvailableSlotsForDay(i).length }} huecos
-              }
-            </span>
-          </button>
+          @if (!day.isPast) {
+            <button
+              class="day-tab"
+              type="button"
+              [class.day-tab--active]="selectedDayIndex() === i"
+              [class.day-tab--today]="day.isToday"
+              [class.day-tab--no-slots]="getAvailableSlotsForDay(i).length === 0"
+              (click)="selectDay(i)"
+            >
+              <span class="day-tab-name">{{ day.dayName }}</span>
+              <span class="day-tab-number" [class.day-tab-number--today]="day.isToday">
+                {{ day.dayNumber }}
+              </span>
+              <span class="day-tab-count" [class.day-tab-count--empty]="getAvailableSlotsForDay(i).length === 0">
+                @if (getAvailableSlotsForDay(i).length === 0) {
+                  Sin hueco
+                } @else {
+                  {{ getAvailableSlotsForDay(i).length }} huecos
+                }
+              </span>
+            </button>
+          }
         }
       </div>
 
@@ -214,22 +216,31 @@ import {
       /* ── Day tabs ────────────────────────────────────── */
       .day-tabs {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        /* Desktop default: 7 days in a single row */
+        grid-template-columns: repeat(7, 1fr);
         gap: var(--space-2);
         margin-bottom: var(--space-5);
+      }
+      /* Mobile: 4 columns → 4+3 layout, at most 2 rows */
+      @media (max-width: 767px) {
+        .day-tabs {
+          grid-template-columns: repeat(4, 1fr);
+        }
       }
       .day-tab {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 0.25rem;
-        padding: var(--space-3) var(--space-2);
+        padding: var(--space-2) var(--space-1);
         background: var(--color-surface);
         border: 2px solid var(--color-border);
         border-radius: var(--radius-xl);
         cursor: pointer;
         transition: all var(--transition-fast);
-        min-height: 5.5rem;
+        min-height: 5rem;
+        min-width: 0;
+        overflow: hidden;
       }
       .day-tab:hover:not(.day-tab--no-slots):not(.day-tab--active) {
         border-color: var(--color-primary);
