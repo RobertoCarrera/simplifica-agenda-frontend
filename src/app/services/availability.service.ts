@@ -18,15 +18,19 @@ export interface CalendarDay {
 @Injectable({ providedIn: "root" })
 export class AvailabilityService {
   /**
-   * Generate week days for a given week start date
+   * Generate week days for a given week start date.
+   * Returns 7 days (Monday through Sunday). The calendar UI hides the
+   * "no slots" state for days where no professional is scheduled, so
+   * showing all 7 days does not create visual noise for businesses
+   * that are closed on weekends.
    */
   generateWeekDays(weekStart: Date): WeekDay[] {
     const days: WeekDay[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    for (let i = 0; i < 5; i++) {
-      // Monday to Friday (L-V)
+    for (let i = 0; i < 7; i++) {
+      // Monday through Sunday (L-D)
       const date = new Date(weekStart);
       date.setDate(weekStart.getDate() + i);
       date.setHours(0, 0, 0, 0);

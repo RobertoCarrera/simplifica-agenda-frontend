@@ -465,7 +465,7 @@ export class WeeklyCalendarComponent implements OnInit, OnChanges {
   weekLabel = computed(() => {
     const start = this.weekStart();
     const end = new Date(start);
-    end.setDate(start.getDate() + 4); // Friday
+    end.setDate(start.getDate() + 6); // Sunday (full Mon-Sun week)
 
     // When the week spans two months or two years, show the second one
     // on the end date. Otherwise just the day.
