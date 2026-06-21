@@ -44,7 +44,7 @@ function requireEnv(name) {
 
 const bffBaseUrl =
   process.env.BFF_BASE_URL ||
-  "https://lsntpezzhinnohggezxy.supabase.co/functions/v1/booking-public";
+  "https://ufutyjbqfjrlzkprvyvs.supabase.co/functions/v1/booking-public";
 
 const supabaseFunctionsUrl =
   process.env.SUPABASE_FUNCTIONS_URL ||
