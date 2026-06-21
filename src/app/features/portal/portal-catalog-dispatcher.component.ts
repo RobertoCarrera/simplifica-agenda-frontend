@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from "@angular/core";
+import { Component, OnInit, inject, signal } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import {
@@ -25,8 +25,8 @@ import { CatalogComponent } from "../catalog/catalog.component";
  *   3. Conservative default: full CatalogComponent. Safe because the full
  *      component handles its own errors.
  *
- * The BFF call also writes the result back to the signal, so a successful
- * fetch always wins over the cached version.
+ * DEBUG: this component logs the decision to the console so the operator
+ * can verify in the browser devtools that the right branch is being taken.
  */
 @Component({
   selector: "app-portal-catalog-dispatcher",
@@ -51,37 +51,45 @@ export class PortalCatalogDispatcherComponent implements OnInit {
       this.route.parent?.snapshot.paramMap.get("slug") ??
       this.route.snapshot.paramMap.get("slug") ??
       "";
+    // eslint-disable-next-line no-console
+    console.log("[portal-dispatcher] mounted for slug:", slug);
 
     // 1. Try the localStorage cache written by the parent companyResolver.
-    //    This is synchronous and gives us a value before the BFF even
-    //    returns. If the cache is stale or missing, the BFF call below
-    //    overrides it.
     try {
       const cached = localStorage.getItem("currentCompany");
+      // eslint-disable-next-line no-console
+      console.log("[portal-dispatcher] localStorage currentCompany:", cached);
       if (cached) {
         const parsed = JSON.parse(cached) as Company;
         const features = resolvePortalFeatures(parsed);
+        // eslint-disable-next-line no-console
+        console.log("[portal-dispatcher] resolved features from cache:", features);
         this.mode.set(features.show_catalog ? "catalog-only" : "full");
       }
-    } catch {
-      // localStorage may be unavailable (SSR / private mode) — ignore.
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[portal-dispatcher] localStorage read failed:", e);
     }
 
-    // 2. Re-fetch the BFF. The BFF call may or may not be cached by
-    //    Angular's HttpClient, but the BookingPublicService doesn't
-    //    currently cache it, so this is a real network call. We do it
-    //    anyway because it is the canonical source and overrides any
-    //    stale localStorage value.
+    // 2. Re-fetch the BFF. Overrides the localStorage value when it returns.
     if (slug) {
       this.bookingService.getServices(slug).subscribe({
         next: (res) => {
           const features = resolvePortalFeatures(res.company ?? null);
+          // eslint-disable-next-line no-console
+          console.log("[portal-dispatcher] BFF features:", features);
           this.mode.set(features.show_catalog ? "catalog-only" : "full");
+          // eslint-disable-next-line no-console
+          console.log("[portal-dispatcher] final mode:", this.mode());
         },
-        error: () => {
-          // Keep whatever mode was set in step 1 (or the default "full").
+        error: (err) => {
+          // eslint-disable-next-line no-console
+          console.warn("[portal-dispatcher] BFF fetch failed:", err);
         },
       });
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn("[portal-dispatcher] no slug in route");
     }
   }
 }
