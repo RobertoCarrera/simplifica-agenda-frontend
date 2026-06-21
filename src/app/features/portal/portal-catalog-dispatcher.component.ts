@@ -24,9 +24,6 @@ import { CatalogComponent } from "../catalog/catalog.component";
  *      even if the BFF call is slow or fails.
  *   3. Conservative default: full CatalogComponent. Safe because the full
  *      component handles its own errors.
- *
- * DEBUG: this component logs the decision to the console so the operator
- * can verify in the browser devtools that the right branch is being taken.
  */
 @Component({
   selector: "app-portal-catalog-dispatcher",
@@ -51,24 +48,20 @@ export class PortalCatalogDispatcherComponent implements OnInit {
       this.route.parent?.snapshot.paramMap.get("slug") ??
       this.route.snapshot.paramMap.get("slug") ??
       "";
-    // eslint-disable-next-line no-console
-    console.log("[portal-dispatcher] mounted for slug:", slug);
 
     // 1. Try the localStorage cache written by the parent companyResolver.
+    //    This is synchronous and gives us a value before the BFF even
+    //    returns. If the cache is stale or missing, the BFF call below
+    //    overrides it.
     try {
       const cached = localStorage.getItem("currentCompany");
-      // eslint-disable-next-line no-console
-      console.log("[portal-dispatcher] localStorage currentCompany:", cached);
       if (cached) {
         const parsed = JSON.parse(cached) as Company;
         const features = resolvePortalFeatures(parsed);
-        // eslint-disable-next-line no-console
-        console.log("[portal-dispatcher] resolved features from cache:", features);
         this.mode.set(features.show_catalog ? "catalog-only" : "full");
       }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.warn("[portal-dispatcher] localStorage read failed:", e);
+    } catch {
+      // localStorage may be unavailable (SSR / private mode) — ignore.
     }
 
     // 2. Re-fetch the BFF. Overrides the localStorage value when it returns.
@@ -76,20 +69,12 @@ export class PortalCatalogDispatcherComponent implements OnInit {
       this.bookingService.getServices(slug).subscribe({
         next: (res) => {
           const features = resolvePortalFeatures(res.company ?? null);
-          // eslint-disable-next-line no-console
-          console.log("[portal-dispatcher] BFF features:", features);
           this.mode.set(features.show_catalog ? "catalog-only" : "full");
-          // eslint-disable-next-line no-console
-          console.log("[portal-dispatcher] final mode:", this.mode());
         },
-        error: (err) => {
-          // eslint-disable-next-line no-console
-          console.warn("[portal-dispatcher] BFF fetch failed:", err);
+        error: () => {
+          // Keep whatever mode was set in step 1 (or the default "full").
         },
       });
-    } else {
-      // eslint-disable-next-line no-console
-      console.warn("[portal-dispatcher] no slug in route");
     }
   }
 }
