@@ -1,39 +1,7 @@
 import { Routes } from "@angular/router";
-import { inject } from "@angular/core";
-import { Router, ResolveFn } from "@angular/router";
-import { of, Observable } from "rxjs";
-import { map, catchError } from "rxjs/operators";
 import { companyResolver } from "./resolvers/company.resolver";
 import { serviceResolver } from "./resolvers/service.resolver";
 import { professionalResolver } from "./resolvers/professional.resolver";
-import { Company, resolvePortalFeatures, PortalFeatures } from "./services/booking-public.service";
-
-/**
- * Shell-level feature flag resolver: returns the resolved portal_features for
- * the active company. Used by the routes below to decide which set of views
- * to load — booking (agenda), catalog (show_catalog), or both.
- *
- * The company data comes from the parent :slug route's companyResolver, so
- * this resolver reuses it via the route snapshot to avoid a second network
- * round-trip. Note: at the time the child's resolveFn runs, the parent's
- * data is already merged into the route snapshot.
- */
-export const portalFeaturesResolver: ResolveFn<PortalFeatures> = (route) => {
-  // `route` is an ActivatedRouteSnapshot; `parent` is also a snapshot.
-  // We use the non-null assertion because the parent route (the :slug route)
-  // is the one that owns the `data.company` payload, so it must exist.
-  const company = route.parent?.data?.["company"] as Company | undefined;
-  return of(resolvePortalFeatures(company ?? null));
-};
-
-/**
- * Helper: returns true if the active company has the booking flow enabled
- * AND the portal_features data is resolved. Used by route guards below.
- */
-function hasFeature(features: PortalFeatures | null | undefined, flag: keyof PortalFeatures): boolean {
-  if (!features) return false;
-  return features[flag] === true;
-}
 
 export const routes: Routes = [
   // Root redirect to default company's servicios
@@ -54,21 +22,15 @@ export const routes: Routes = [
       },
 
       // ── Servicios (catalog) ─────────────────────────────────────
-      // Routes to CatalogOnlyComponent when the company has show_catalog = true
-      // (and prefers it over booking when both are set). Otherwise the full
-      // CatalogComponent (with professionals + duration tabs + booking CTA).
-      //
-      // The decision is made by inspecting the resolved company's portal_features.
-      // We do it in a child resolveFn that reuses the parent data.
+      // The dispatcher (PortalCatalogDispatcherComponent) re-fetches the
+      // company data from the BFF in ngOnInit and picks CatalogOnlyComponent
+      // when show_catalog is true, else the full CatalogComponent. We do
+      // NOT use a route-level resolver here because the resolver chain
+      // was producing empty values at the moment the child component
+      // mounted. See the comment in portal-catalog-dispatcher.component.ts.
       {
         path: "servicios",
-        resolve: { portalFeatures: portalFeaturesResolver },
         loadComponent: () =>
-          // Both components are loaded eagerly so the chunk split doesn't
-          // matter at runtime. We pick the one to render with an *ngIf in a
-          // small wrapper below — but Angular's loadComponent expects a
-          // single component, so instead we route to a tiny dispatcher that
-          // picks at render time.
           import("./features/portal/portal-catalog-dispatcher.component").then(
             (m) => m.PortalCatalogDispatcherComponent,
           ),
@@ -84,7 +46,7 @@ export const routes: Routes = [
           import("./features/portal/portal-service-detail-dispatcher.component").then(
             (m) => m.PortalServiceDetailDispatcherComponent,
           ),
-        resolve: { service: serviceResolver, portalFeatures: portalFeaturesResolver },
+        resolve: { service: serviceResolver },
         title: "Detalle del Servicio | Simplifica CRM",
       },
 
