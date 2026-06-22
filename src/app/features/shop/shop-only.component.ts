@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal } from "@angular/core";
+import { Component, OnInit, inject, signal, computed } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
 import { TranslocoModule } from "@jsverse/transloco";
 import {
   BookingPublicService,
@@ -25,7 +26,7 @@ import { applyBrandingColors } from "../../shared/branding.utils";
 @Component({
   selector: "app-shop-only",
   standalone: true,
-  imports: [RouterLink, CommonModule, TranslocoModule],
+  imports: [RouterLink, CommonModule, FormsModule, TranslocoModule],
   template: `
     @if (loading()) {
       <div class="shop-loading">
@@ -60,8 +61,59 @@ import { applyBrandingColors } from "../../shared/branding.utils";
           </div>
         </header>
 
+        <!-- Filters bar: search input + category dropdown.
+             Hidden when the company has no products at all. -->
+        @if (products().length > 0) {
+          <div class="filters-bar">
+            <div class="search-input">
+              <i class="fas fa-search"></i>
+              <input
+                type="search"
+                [(ngModel)]="searchQuery"
+                placeholder="Buscar productos por nombre o descripción…"
+                aria-label="Buscar productos"
+              />
+              @if (searchQuery) {
+                <button
+                  type="button"
+                  class="search-clear"
+                  (click)="searchQuery = ''"
+                  aria-label="Limpiar búsqueda"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              }
+            </div>
+            @if (availableCategories().length > 0) {
+              <select
+                class="category-select"
+                [(ngModel)]="selectedCategory"
+                aria-label="Filtrar por categoría"
+              >
+                <option value="">Todas las categorías</option>
+                @for (cat of availableCategories(); track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+            }
+            @if (searchQuery || selectedCategory) {
+              <button
+                type="button"
+                class="clear-filters"
+                (click)="clearFilters()"
+              >
+                <i class="fas fa-undo"></i> Limpiar filtros
+              </button>
+            }
+          </div>
+        }
+
         <p class="count-label">
-          {{ products().length }} producto{{ products().length !== 1 ? 's' : '' }} disponible{{ products().length !== 1 ? 's' : '' }}
+          @if (filteredProducts().length === products().length) {
+            {{ products().length }} producto{{ products().length !== 1 ? 's' : '' }} disponible{{ products().length !== 1 ? 's' : '' }}
+          } @else {
+            Mostrando {{ filteredProducts().length }} de {{ products().length }} producto{{ products().length !== 1 ? 's' : '' }}
+          }
         </p>
 
         @if (products().length === 0) {
@@ -69,9 +121,17 @@ import { applyBrandingColors } from "../../shared/branding.utils";
             <div class="empty-icon">🛍️</div>
             <p>Próximamente publicaremos nuevos productos.</p>
           </div>
+        } @else if (filteredProducts().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <p>No hay productos que coincidan con tu búsqueda.</p>
+            <button type="button" class="link-btn" (click)="clearFilters()">
+              Limpiar filtros
+            </button>
+          </div>
         } @else {
           <div class="products-grid">
-            @for (product of products(); track product.id) {
+            @for (product of filteredProducts(); track product.id) {
               <div class="product-card">
                 <div class="product-card-top">
                   <h3 class="product-name">{{ product.name }}</h3>
@@ -82,11 +142,19 @@ import { applyBrandingColors } from "../../shared/branding.utils";
                 @if (product.description) {
                   <p class="product-desc">{{ product.description }}</p>
                 }
-                @if (product.stock_quantity != null) {
-                  <p class="product-stock" [class.low-stock]="isLowStock(product)">
-                    {{ isLowStock(product) ? '¡Pocas unidades!' : 'En stock' }} ({{ product.stock_quantity }})
-                  </p>
-                }
+                <div class="product-meta">
+                  @if (product.brand) {
+                    <span class="meta-pill">{{ product.brand }}</span>
+                  }
+                  @if (product.model) {
+                    <span class="meta-pill">{{ product.model }}</span>
+                  }
+                  @if (product.stock_quantity != null) {
+                    <span class="product-stock" [class.low-stock]="isLowStock(product)">
+                      {{ isLowStock(product) ? '¡Pocas unidades!' : 'En stock' }} ({{ product.stock_quantity }})
+                    </span>
+                  }
+                </div>
                 <div class="product-card-bottom">
                   <button type="button" class="btn-add" (click)="addToCart(product)">
                     Añadir al carrito
@@ -189,6 +257,125 @@ import { applyBrandingColors } from "../../shared/branding.utils";
         margin: 0 0 1rem;
       }
 
+      /* ── Filters bar ── */
+      .filters-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .search-input {
+        position: relative;
+        flex: 1 1 220px;
+        min-width: 200px;
+      }
+      .search-input i.fa-search {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-secondary);
+        font-size: 0.875rem;
+        pointer-events: none;
+      }
+      .search-input input {
+        width: 100%;
+        padding: 0.5rem 2.25rem 0.5rem 2.25rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+        background: var(--color-bg, white);
+        color: var(--color-text);
+        font-size: 0.875rem;
+        font-family: inherit;
+        transition: border-color 150ms ease;
+      }
+      .search-input input:focus {
+        outline: none;
+        border-color: var(--color-primary, #10B981);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+      .search-input input::-webkit-search-cancel-button { display: none; }
+      .search-clear {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        padding: 0.25rem 0.5rem;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        font-size: 0.75rem;
+        border-radius: 0.25rem;
+      }
+      .search-clear:hover {
+        color: var(--color-text);
+        background: var(--color-surface-hover);
+      }
+      .category-select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.5rem;
+        background: var(--color-bg, white);
+        color: var(--color-text);
+        font-size: 0.875rem;
+        font-family: inherit;
+        cursor: pointer;
+        min-width: 180px;
+      }
+      .category-select:focus {
+        outline: none;
+        border-color: var(--color-primary, #10B981);
+      }
+      .clear-filters {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem 0.75rem;
+        background: transparent;
+        color: var(--color-primary, #10B981);
+        border: 1px solid var(--color-primary, #10B981);
+        border-radius: 0.5rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .clear-filters:hover {
+        background: var(--color-primary, #10B981);
+        color: white;
+      }
+      .link-btn {
+        background: transparent;
+        border: none;
+        color: var(--color-primary, #10B981);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        font-family: inherit;
+      }
+      .link-btn:hover { text-decoration: underline; }
+
+      /* ── Product meta ── */
+      .product-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.375rem;
+      }
+      .meta-pill {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.125rem 0.5rem;
+        border-radius: 0.25rem;
+        background: var(--color-surface-hover);
+        color: var(--color-text-secondary);
+      }
+
       .empty-state {
         text-align: center;
         padding: 3rem 1rem;
@@ -289,6 +476,50 @@ export class ShopOnlyComponent implements OnInit {
   products = signal<Product[]>([]);
   companyName = signal<string>("");
   logoUrl = signal<string | null>(null);
+
+  // Filter state (two-way bound from the template).
+  searchQuery = "";
+  selectedCategory = "";
+
+  /**
+   * Unique categories present in the loaded products, sorted alphabetically.
+   * Used to populate the category dropdown. Only categories that
+   * actually appear are shown, so a company with products in 2
+   * categories sees 2 options (not 30).
+   */
+  availableCategories = computed<Array<{ id: string; name: string }>>(() => {
+    const map = new Map<string, string>();
+    for (const p of this.products()) {
+      if (p.category_id && p.category_name) {
+        map.set(p.category_id, p.category_name);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, "es"));
+  });
+
+  /**
+   * Products filtered by the current search query and category selection.
+   * Re-evaluates whenever products, searchQuery, or selectedCategory change.
+   */
+  filteredProducts = computed<Product[]>(() => {
+    const query = this.searchQuery.trim().toLowerCase();
+    const cat = this.selectedCategory;
+    return this.products().filter((p) => {
+      if (cat && p.category_id !== cat) return false;
+      if (query) {
+        const haystack = `${p.name} ${p.description ?? ""} ${p.brand ?? ""} ${p.model ?? ""}`.toLowerCase();
+        if (!haystack.includes(query)) return false;
+      }
+      return true;
+    });
+  });
+
+  clearFilters() {
+    this.searchQuery = "";
+    this.selectedCategory = "";
+  }
 
   ngOnInit() {
     const parentParams = this.route.parent?.snapshot.paramMap;

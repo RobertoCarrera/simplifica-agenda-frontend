@@ -84,6 +84,8 @@ export interface Product {
   model?: string | null;
   barcode?: string | null;
   location?: string | null;
+  category_id?: string | null;
+  category_name?: string | null;
 }
 
 export interface CompanyServicesResponse {
