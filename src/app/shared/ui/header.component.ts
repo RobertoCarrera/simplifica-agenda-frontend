@@ -1,10 +1,20 @@
-import { Component, Input, OnInit, inject, signal } from "@angular/core";
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  ViewChild,
+  inject,
+  signal,
+} from "@angular/core";
 import { CommonModule, Location } from "@angular/common";
 import { Router, RouterLink, RouterLinkActive, NavigationEnd } from "@angular/router";
 import { TranslocoModule } from "@jsverse/transloco";
 import { filter } from "rxjs/operators";
 import { LanguageSwitcherComponent } from "./language-switcher.component";
 import { CartService } from "../services/cart.service";
+import { FlyToCartService } from "../services/fly-to-cart.service";
 
 @Component({
   selector: "app-header",
@@ -57,6 +67,7 @@ import { CartService } from "../services/cart.service";
         <div class="header-actions">
           <a
             *ngIf="slug()"
+            #cartButton
             [routerLink]="['/', slug(), 'cart']"
             class="cart-button"
             [class.cart-empty]="cart.itemCount() === 0"
@@ -196,6 +207,18 @@ import { CartService } from "../services/cart.service";
       box-shadow: 0 0 0 2px var(--color-surface);
     }
 
+    /* Brief bounce on the cart icon when a product arrives.
+       prefers-reduced-motion is handled in FlyToCartService — the
+       .cart-bump class is only added when the user has not opted out. */
+    .cart-button.cart-bump {
+      animation: cart-icon-bump 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes cart-icon-bump {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.35); }
+      100% { transform: scale(1); }
+    }
+
     @media (max-width: 768px) {
       .header-container { flex-wrap: wrap; }
       .main-nav {
@@ -209,13 +232,23 @@ import { CartService } from "../services/cart.service";
     }
   `],
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, AfterViewInit {
   @Input() companyName: string = "Simplifica CRM";
   @Input() logoUrl?: string;
 
   private router = inject(Router);
   private location = inject(Location);
+  private flyToCart = inject(FlyToCartService);
   cart = inject(CartService);
+
+  /**
+   * Reference to the cart button so FlyToCartService can fly
+   * products to its bounding rect. The button is conditionally
+   * rendered (only when slug() is truthy), so the reference may be
+   * undefined initially; ngAfterViewInit re-registers whenever the
+   * cart count changes (which is when a new cart button might appear).
+   */
+  @ViewChild("cartButton") cartButtonRef?: ElementRef<HTMLElement>;
 
   /** Active company slug, derived from the URL. Empty when on a route that
    *  doesn't have a slug segment (root, 404, etc.). The cart link is only
@@ -235,6 +268,19 @@ export class HeaderComponent implements OnInit {
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe(() => this.refreshSlug());
+  }
+
+  /**
+   * Register the cart button as the target for FlyToCartService. The
+   * button is conditionally rendered with *ngIf="slug()", so the
+   * reference may be undefined initially; we use a microtask to wait
+   * for the *ngIf to settle and re-register if needed.
+   */
+  ngAfterViewInit() {
+    queueMicrotask(() => {
+      const el = this.cartButtonRef?.nativeElement ?? null;
+      this.flyToCart.setTarget(el);
+    });
   }
 
   /**

@@ -22,6 +22,7 @@ import {
 import { applyBrandingColors } from "../../shared/branding.utils";
 import { StripHtmlPipe } from "../../shared/pipes/strip-html.pipe";
 import { CartService } from "../../shared/services/cart.service";
+import { FlyToCartService } from "../../shared/services/fly-to-cart.service";
 
 /**
  * Tabbed portal shell. When a company has 2+ portal modes active
@@ -306,7 +307,7 @@ import { CartService } from "../../shared/services/cart.service";
                         </p>
                       }
                       <div class="product-card-bottom">
-                        <button type="button" class="btn-add" (click)="addToCart(product)">
+                        <button type="button" class="btn-add" (click)="addToCart($event, product)">
                           Añadir al carrito
                         </button>
                       </div>
@@ -412,7 +413,6 @@ import { CartService } from "../../shared/services/cart.service";
         gap: 0.125rem;
         border-bottom: 1px solid var(--color-border);
         margin-bottom: 2rem;
-        overflow-x: auto;
         scrollbar-width: thin;
       }
       .portal-tab {
@@ -658,6 +658,7 @@ export class PortalCombinedComponent implements OnInit {
   private router = inject(Router);
   private bookingService = inject(BookingPublicService);
   private cartService = inject(CartService);
+  private flyToCart = inject(FlyToCartService);
   private hostEl = inject(ElementRef<HTMLElement>);
 
   loading = signal(true);
@@ -855,13 +856,25 @@ export class PortalCombinedComponent implements OnInit {
   }
 
   /**
-   * Add a product to the customer's cart. Previously this method only
-   * logged to the console, which is why the cart icon never updated.
-   * It now goes through CartService, which persists to localStorage and
-   * updates the cart badge in the header in real time.
+   * Add a product to the customer's cart and animate the product card
+   * flying toward the cart icon in the header. The animation is purely
+   * visual — the actual cart addition happens synchronously via
+   * CartService so the badge updates immediately, even before the
+   * animation completes.
+   *
+   * @param event The click event, used to locate the source element
+   *   for the flying clone. Falls back to the product card if the
+   *   event target is not the button itself.
    */
-  addToCart(product: Product) {
+  addToCart(event: Event, product: Product) {
     this.cartService.add(product);
+    const source =
+      event.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : (event.target as HTMLElement | null);
+    if (source) {
+      this.flyToCart.flyTo(source);
+    }
   }
 
   requestService(svc: Service, tier: { variantId: string; pricing: VariantPricing }) {

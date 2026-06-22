@@ -10,6 +10,7 @@ import {
 } from "../../services/booking-public.service";
 import { applyBrandingColors } from "../../shared/branding.utils";
 import { CartService } from "../../shared/services/cart.service";
+import { FlyToCartService } from "../../shared/services/fly-to-cart.service";
 
 /**
  * Shop-only view for companies whose portal_features.show_shop = true.
@@ -189,7 +190,7 @@ import { CartService } from "../../shared/services/cart.service";
                       <button
                         type="button"
                         class="qty-btn"
-                        (click)="addToCart(product)"
+                        (click)="addToCart($event, product)"
                         aria-label="Añadir uno más al carrito"
                       >
                         <svg class="qty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
@@ -199,7 +200,7 @@ import { CartService } from "../../shared/services/cart.service";
                       </button>
                     </div>
                   } @else {
-                    <button type="button" class="btn-add" (click)="addToCart(product)">
+                    <button type="button" class="btn-add" (click)="addToCart($event, product)">
                       <svg class="add-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="9" cy="21" r="1"></circle>
                         <circle cx="20" cy="21" r="1"></circle>
@@ -559,6 +560,7 @@ export class ShopOnlyComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private bookingService = inject(BookingPublicService);
   cart = inject(CartService);
+  flyToCart = inject(FlyToCartService);
 
   loading = signal(true);
   error = signal<string | null>(null);
@@ -638,8 +640,15 @@ export class ShopOnlyComponent implements OnInit {
     });
   }
 
-  addToCart(product: Product) {
+  addToCart(event: Event, product: Product) {
     this.cart.add(product);
+    const source =
+      event.currentTarget instanceof HTMLElement
+        ? event.currentTarget
+        : (event.target as HTMLElement | null);
+    if (source) {
+      this.flyToCart.flyTo(source);
+    }
   }
 
   decreaseQty(product: Product) {
